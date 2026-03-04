@@ -101,7 +101,7 @@ All articles must follow the SEO Skill ([`.agents/skills/seo-skill/SKILL.md`](.a
 - [x] What is an open source applicant tracking system? (The complete guide) 🔵 — [`open-source-applicant-tracking-system.md`](content/blog/open-source-applicant-tracking-system.md)
 
 **Supporting:**
-- [ ] How does an applicant tracking system work? (The basics explained) 🔵
+- [x] How does an applicant tracking system work? (The basics explained) 🔵 — [`how-applicant-tracking-systems-work.md`](content/blog/how-applicant-tracking-systems-work.md)
 - [ ] Open source vs proprietary ATS: what's the real difference? 🔵 → [Cluster 2]
 - [ ] Open source vs free ATS: why "free" and "open source" aren't the same thing 🔵
 - [ ] What does open source licensing mean for ATS software? (MIT, GPL, Apache explained) 🔵
@@ -113,7 +113,7 @@ All articles must follow the SEO Skill ([`.agents/skills/seo-skill/SKILL.md`](.a
 
 ---
 
-**Phase 1 total: 35 articles** | Progress: 3/35
+**Phase 1 total: 35 articles** | Progress: 4/35
 
 ---
 
@@ -403,7 +403,7 @@ After Phase 4, return to Phase 1 content and upgrade:
 
 | Cluster | Phase | Articles | Done | Remaining |
 |---------|-------|----------|------|-----------|
-| 1. Fundamentals | 1 | 10 | 2 | 8 |
+| 1. Fundamentals | 1 | 10 | 3 | 7 |
 | 2. Comparisons | 1 | 25 | 1 | 24 |
 | 3. AI & Automation | 2 | 17 | 0 | 17 |
 | 4. Data Ownership | 2 | 16 | 0 | 16 |
@@ -412,7 +412,7 @@ After Phase 4, return to Phase 1 content and upgrade:
 | 7. Metrics | 3 | 15 | 0 | 15 |
 | 8. Career Pages | 4 | 9 | 0 | 9 |
 | 9. Migration | 4 | 9 | 0 | 9 |
-| **Total** | | **132** | **3** | **129** |
+| **Total** | | **132** | **4** | **128** |
 
 ---
 

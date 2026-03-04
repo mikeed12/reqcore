@@ -15,7 +15,7 @@ If you manage hiring and want to understand what sets open source ATS apart from
 
 ## How an Applicant Tracking System Works
 
-An applicant tracking system manages the hiring lifecycle from job requisition to offer letter. At its core, every ATS performs five functions:
+An applicant tracking system manages the hiring lifecycle from job requisition to offer letter. For a detailed breakdown of each stage — from resume parsing to AI scoring to data flow — see our guide on [how applicant tracking systems work](/blog/how-applicant-tracking-systems-work). At its core, every ATS performs five functions:
 
 1. **Job posting** — Create job listings and distribute them to career pages and job boards ([Indeed](https://www.indeed.com/), [LinkedIn](https://www.linkedin.com/), [Google for Jobs](https://jobs.google.com/)).
 2. **Application collection** — Accept candidate applications via web forms, email, or API integrations. Store resumes, cover letters, and custom field responses.
