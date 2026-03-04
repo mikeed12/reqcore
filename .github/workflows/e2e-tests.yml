@@ -138,7 +138,9 @@ jobs:
 
       - name: Generate Allure report
         if: ${{ !cancelled() }}
-        run: npx allure generate allure-results -o allure-report
+        run: |
+          mkdir -p allure-results
+          npx allure generate allure-results -o allure-report
 
       - name: Upload Allure results
         uses: actions/upload-artifact@v4
