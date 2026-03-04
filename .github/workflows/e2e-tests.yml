@@ -33,19 +33,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-          MINIO_DEFAULT_BUCKETS: reqcore
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+
 
     env:
       DATABASE_URL: postgresql://reqcore:reqcore-ci@localhost:5432/reqcore
@@ -61,6 +49,21 @@ jobs:
       S3_FORCE_PATH_STYLE: "true"
 
     steps:
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name minio-ci \
+            -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+          timeout 30 sh -c 'until curl -sf http://localhost:9000/minio/health/live; do sleep 2; done'
+          AWS_ACCESS_KEY_ID=minioadmin \
+          AWS_SECRET_ACCESS_KEY=minioadmin \
+          aws s3 mb s3://reqcore \
+            --endpoint-url http://localhost:9000 \
+            --region us-east-1
+
       - name: Checkout
         uses: actions/checkout@v4
 
