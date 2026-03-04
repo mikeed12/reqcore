@@ -41,8 +41,10 @@ const applyRateLimit = createRateLimiter({
  * 8. Upload files to S3 and create document records
  */
 export default defineEventHandler(async (event) => {
-  // Enforce rate limit before any processing (skip in dev for E2E test stability)
-  if (process.env.NODE_ENV === 'production') {
+  // Enforce rate limit before any processing.
+  // Skipped in development and in CI (E2E test runners hit the limit across the
+  // full test suite when the production build is used).
+  if (process.env.NODE_ENV === 'production' && !process.env.CI) {
     await applyRateLimit(event)
   }
 

@@ -23,12 +23,9 @@ const JOB_TITLE = 'Frontend Developer — All Fields Test'
 const JOB_DESCRIPTION = 'Join our team building modern web applications with Vue and Nuxt.'
 const JOB_LOCATION = 'Berlin, Germany'
 
-const APPLICANT = {
-  firstName: 'Jane',
-  lastName: 'Doe',
-  email: 'jane.doe@example.com',
-  phone: '+49 170 1234567',
-}
+// Applicant identity is generated inside the test to guarantee uniqueness
+// across retries (Playwright can retry up to 2× in CI; a static email would
+// produce a 409 "already applied" on the second attempt).
 
 /**
  * One question per field type defined in QuestionForm.vue / DynamicField.vue.
@@ -139,7 +136,7 @@ async function addCustomQuestion(
 }
 
 test.describe('Candidate Application Flow — All Custom Question Field Types', () => {
-  test('all nine custom field types render and accept input on the public application form', async ({ authenticatedPage, browser }) => {
+  test('all nine custom field types render and accept input on the public application form', async ({ authenticatedPage, browser }, testInfo) => {
     const page = authenticatedPage
 
     // ── Step 1: Fill in job details ───────────────────────────────────────────
@@ -199,14 +196,24 @@ test.describe('Candidate Application Flow — All Custom Question Field Types', 
     // Read the application link from the readonly input in the success card.
     // The link has the form: https://<host>/jobs/<slug>/apply
     const applicationLink = await page.locator('input[readonly]').inputValue()
-    expect(applicationLink).toContain('/jobs/')
-    const jobSlug = applicationLink.split('/jobs/')[1]?.split('/apply')[0] ?? ''
+    expect(applicationLink).toMatch(/\/jobs\/[^/]+\/apply(?:$|[?#])/)
+    const slugMatch = applicationLink.match(/\/jobs\/([^/]+)\/apply(?:$|[?#])/)
+    const jobSlug = slugMatch?.[1] ?? ''
     expect(jobSlug.length, 'Job slug must not be empty').toBeGreaterThan(0)
 
     // ── Candidate flow: fresh unauthenticated context ─────────────────────────
 
     const candidateContext = await browser.newContext()
     const candidatePage = await candidateContext.newPage()
+
+    // Unique identity per run + retry — static emails cause a 409 "already
+    // applied" conflict when Playwright retries a failed test in CI.
+    const APPLICANT = {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: `jane.doe.${Date.now()}.r${testInfo.retry}@example.com`,
+      phone: '+49 170 1234567',
+    }
 
     // Navigate directly to the application form URL captured from the success state
     await candidatePage.goto(applicationLink)
@@ -256,8 +263,8 @@ test.describe('Candidate Application Flow — All Custom Question Field Types', 
     await expect(candidatePage.getByLabel('Agree to background check')).toBeChecked()
 
     // 9. file_upload — hidden <input type="file"> triggered by a styled button.
-    // Because requireResume was disabled, the only file input belongs to this
-    // custom question. Supply a minimal valid PDF buffer.
+    // Scope to the specific custom question container so the selector remains
+    // stable even if a built-in resume upload is added later.
     const pdfBuffer = Buffer.from(
       '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n'
        + '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n'
@@ -265,7 +272,13 @@ test.describe('Candidate Application Flow — All Custom Question Field Types', 
        + 'xref\n0 4\n0000000000 65535 f\n'
        + 'trailer<</Size 4/Root 1 0 R>>\nstartxref\n9\n%%EOF',
     )
-    await candidatePage.locator('input[type="file"]').setInputFiles({
+    // Locate the DynamicField wrapper for the "Cover letter document" question
+    // and narrow the file input to that scope.
+    const coverLetterQuestionContainer = candidatePage
+      .locator('div, section, fieldset')
+      .filter({ hasText: 'Cover letter document' })
+      .first()
+    await coverLetterQuestionContainer.locator('input[type="file"]').setInputFiles({
       name: 'cover-letter.pdf',
       mimeType: 'application/pdf',
       buffer: pdfBuffer,
@@ -453,5 +466,81 @@ test.describe('Candidate Application Flow — All Custom Question Field Types', 
     await expect(page.getByText('Remote').first()).toBeVisible() // single_select
     await expect(page.getByText('Yes').first()).toBeVisible() // checkbox
     await expect(page.getByText('https://github.com/jane-doe').first()).toBeVisible() // url
+  })
+})
+
+test.describe('Candidate Application — Required Cover Letter Validation', () => {
+  /**
+   * Verifies that:
+   * - The cover letter textarea appears when the job has requireCoverLetter=true
+   * - Client-side validation blocks submission when the textarea is empty
+   * - The error message "Cover letter is required" is displayed
+   */
+  test('form shows and enforces required cover letter', async ({ authenticatedPage, browser }, testInfo) => {
+    const page = authenticatedPage
+
+    // ── Create a job with cover letter required ────────────────────────────────
+    await page.goto('/dashboard/jobs/new')
+    await page.waitForLoadState('networkidle')
+    await page.getByLabel('Job title').waitFor({ state: 'visible', timeout: 15_000 })
+    await page.getByLabel('Job title').fill('Cover Letter Required Job')
+    await page.locator('textarea').first().fill('A job that requires a cover letter.')
+    await page.getByLabel('Location').fill('Remote')
+
+    // Step 1 → Step 2
+    await page.locator('form').getByRole('button', { name: 'Save & continue' }).first()
+      .waitFor({ state: 'attached', timeout: 10_000 })
+    await page.locator('form').getByRole('button', { name: 'Save & continue' }).first().click()
+
+    // Step 2: Enable "Ask for cover letter" toggle
+    const coverLetterToggle = page.getByRole('button', { name: /Ask for cover letter/i })
+    await coverLetterToggle.waitFor({ state: 'visible', timeout: 10_000 })
+    if ((await coverLetterToggle.getAttribute('aria-pressed')) !== 'true') {
+      await coverLetterToggle.click()
+    }
+    await expect(coverLetterToggle).toHaveAttribute('aria-pressed', 'true')
+
+    // Step 2 → Step 3 → Step 4
+    await page.locator('form').getByRole('button', { name: 'Save & continue' }).first().click()
+    await page.locator('form').getByRole('button', { name: 'Save & continue' }).first()
+      .waitFor({ state: 'visible', timeout: 10_000 })
+    await page.locator('form').getByRole('button', { name: 'Save & continue' }).first().click()
+    await expect(page.getByRole('heading', { name: /Ready to go\?/i })).toBeVisible({ timeout: 10_000 })
+    await page.locator('form').getByRole('button', { name: /Publish & copy link/i })
+      .waitFor({ state: 'visible', timeout: 10_000 })
+    await page.locator('form').getByRole('button', { name: /Publish & copy link/i }).click()
+    await expect(page.getByRole('heading', { name: 'Your job is live!' })).toBeVisible({ timeout: 20_000 })
+
+    // Capture the application link
+    const applicationLink = await page.locator('input[readonly]').inputValue()
+    expect(applicationLink).toMatch(/\/jobs\/[^/]+\/apply(?:$|[?#])/)
+
+    // ── Candidate flow ────────────────────────────────────────────────────────
+    const candidateContext = await browser.newContext()
+    const candidatePage = await candidateContext.newPage()
+
+    await candidatePage.goto(applicationLink)
+    await candidatePage.waitForLoadState('networkidle')
+    await candidatePage.getByRole('button', { name: /submit/i }).waitFor({ state: 'visible', timeout: 15_000 })
+
+    // The cover letter textarea must be visible (requireCoverLetter=true)
+    await expect(candidatePage.locator('#coverLetterText')).toBeVisible({ timeout: 10_000 })
+
+    // Fill required basic fields but leave cover letter EMPTY
+    await candidatePage.getByLabel('First name').fill('Test')
+    await candidatePage.getByLabel('Last name').fill('Applicant')
+    await candidatePage.getByLabel('Email').fill(`test.applicant.${Date.now()}.r${testInfo.retry}@example.com`)
+
+    // Submit without cover letter — client validation must block it
+    await candidatePage.getByRole('button', { name: /submit/i }).click()
+
+    // Error message should appear; the page should NOT navigate
+    await expect(
+      candidatePage.getByText(/Cover letter is required/i),
+    ).toBeVisible({ timeout: 5_000 })
+    expect(candidatePage.url()).not.toContain('/confirmation')
+
+    await candidatePage.close()
+    await candidateContext.close()
   })
 })

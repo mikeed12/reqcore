@@ -58,8 +58,9 @@ test.describe('Job Creation Flow', () => {
 
     // ── Extract job slug from the application link ────────
     const applicationLink = await page.locator('input[readonly]').inputValue()
-    expect(applicationLink).toContain('/jobs/')
-    const jobSlug = applicationLink.split('/jobs/')[1]?.split('/apply')[0] ?? ''
+    expect(applicationLink).toMatch(/\/jobs\/[^/]+\/apply(?:$|[?#])/)
+    const slugMatch = applicationLink.match(/\/jobs\/([^/]+)\/apply(?:$|[?#])/)
+    const jobSlug = slugMatch?.[1] ?? ''
     expect(jobSlug.length, 'Job slug must not be empty').toBeGreaterThan(0)
 
     // ── Verify on public jobs page ───────────────────────

@@ -150,8 +150,9 @@ test.describe('Resume Upload — All File Formats', () => {
     await expect(page.getByRole('heading', { name: 'Your job is live!' })).toBeVisible({ timeout: 20_000 })
 
     applicationLink = await page.locator('input[readonly]').inputValue()
-    expect(applicationLink).toContain('/jobs/')
-    jobSlug = applicationLink.split('/jobs/')[1]?.split('/apply')[0] ?? ''
+    expect(applicationLink).toMatch(/\/jobs\/[^/]+\/apply(?:$|[?#])/)
+    const slugMatch = applicationLink.match(/\/jobs\/([^/]+)\/apply(?:$|[?#])/)
+    jobSlug = slugMatch?.[1] ?? ''
     expect(jobSlug.length).toBeGreaterThan(0)
 
     await page.close()
