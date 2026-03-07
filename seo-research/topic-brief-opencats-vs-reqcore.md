@@ -13,7 +13,7 @@
 
 ## 3. Original Angles
 1. **Modern vs. Legacy Stack:** Comparing Reqcore's modern Nuxt 4 / TypeScript / Docker deployment against OpenCATS' traditional PHP/LAMP stack.
-2. **The "Glass Box" AI:** Highlighting Reqcore's transparent AI candidate matching versus OpenCATS' lack of native modern AI features.
+2. **Transparent ranking:** Highlighting Reqcore's planned auditable AI candidate matching versus OpenCATS' lack of modern AI features.
 3. **UI/UX and Recruiter Efficiency:** Comparing the "straight out of the 2000s" OpenCATS interface with Reqcore's Recruiter-First UX.
 
 ## 4. Internal Link Plan
@@ -26,7 +26,7 @@
 
 ## 6. Article Outline (H2s)
 - What is OpenCATS? The Legacy Open Source ATS
-- What is Reqcore? The Modern, Glass Box Alternative
+- What is Reqcore? The Modern Alternative
 - OpenCATS vs Reqcore: Core Feature Comparison
 - User Interface and Recruiter Experience
 - Deployment and Self-Hosting: Old School vs Modern Docker

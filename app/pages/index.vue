@@ -32,18 +32,18 @@ import {
 const { t } = useI18n()
 
 useSeoMeta({
-  title: 'Open-Source Applicant Tracking System — Self-Hosted ATS',
+  title: 'Open-Source ATS for Developer Teams — Reqcore',
   description:
-    'Reqcore is a free, open-source ATS you can self-host. No per-seat pricing, full data ownership, and a modern tech stack. The best Greenhouse & Lever alternative.',
-  ogTitle: 'Reqcore — Open-Source Applicant Tracking System',
+    'Reqcore is a free, open-source applicant tracking system built for engineering teams. Self-hosted, no per-seat pricing, built with Nuxt, Postgres, and Docker.',
+  ogTitle: 'Reqcore — Open-Source ATS for Developer Teams',
   ogDescription:
-    'Free, self-hosted ATS with zero per-seat fees and full data ownership. Deploy on your own infrastructure in minutes.',
+    'Hiring software rebuilt for developers. Self-host on your infrastructure with Docker Compose. Early open-source release.',
   ogType: 'website',
   ogImage: '/og-image.png',
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Reqcore — Open-Source Applicant Tracking System',
+  twitterTitle: 'Reqcore — Open-Source ATS for Developer Teams',
   twitterDescription:
-    'Self-hosted ATS with no per-seat pricing, full data ownership, and a modern tech stack.',
+    'Open-source ATS built for engineering teams. Self-hosted, no per-seat pricing, built with Nuxt, Postgres, and Docker.',
 })
 
 // ─── Schema.org: Organization + WebSite ──────────────
@@ -53,15 +53,15 @@ useSchemaOrg([
     url: 'https://reqcore.com',
     logo: 'https://reqcore.com/og-image.png',
     sameAs: ['https://github.com/reqcore-inc/reqcore'],
-    description: 'Open-source applicant tracking system with full data ownership and no per-seat pricing.',
+    description: 'Open-source applicant tracking system built for developer teams. Self-hosted, no per-seat pricing.',
   }),
   defineWebSite({
     name: 'Reqcore',
-    description: 'Open-source applicant tracking system with no per-seat pricing and full data ownership.',
+    description: 'Open-source applicant tracking system built for developer teams. Self-hosted with Nuxt, Postgres, and Docker.',
   }),
   defineWebPage({
-    name: 'Reqcore — Open-Source Applicant Tracking System',
-    description: 'Free, self-hosted ATS with zero per-seat fees and full data ownership.',
+    name: 'Reqcore — Open-Source ATS for Developer Teams',
+    description: 'Open-source ATS built for engineering teams. Self-hosted, no per-seat pricing, built with a modern stack.',
   }),
 ])
 
@@ -204,15 +204,14 @@ const ctaRef = useScrollFade()
         </div>
 
         <!-- Hero heading — large & bold, Linear-inspired -->
-        <h1 class="hero-animate hero-delay-2 text-[clamp(2.5rem,6.5vw,5.5rem)] leading-[1.05] font-extrabold tracking-[-0.03em]">
-          {{ t('home.hero.titleLine1') }}<br />
-          <span class="bg-gradient-to-r from-brand-400 via-brand-300 to-accent-400 bg-clip-text text-transparent">{{ t('home.hero.titleHighlight') }}</span>
+        <h1 class="hero-animate hero-delay-2 text-[clamp(2.25rem,5.5vw,5rem)] leading-[1.08] font-extrabold tracking-[-0.03em]">
+          <span class="block">{{ t('home.hero.titleLine1') }}</span>
+          <span class="block bg-gradient-to-r from-brand-400 via-brand-300 to-accent-400 bg-clip-text text-transparent">{{ t('home.hero.titleHighlight') }}</span>
         </h1>
 
         <!-- Subtitle -->
-        <p class="hero-animate hero-delay-3 mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-surface-400 sm:text-xl sm:leading-relaxed">
-          {{ t('home.hero.subtitleLine1') }}
-          {{ t('home.hero.subtitleLine2') }}
+        <p class="hero-animate hero-delay-3 mx-auto mt-7 max-w-xl text-lg leading-relaxed text-surface-400 sm:text-xl sm:leading-relaxed">
+          {{ t('home.hero.subtitleLine1') }} {{ t('home.hero.subtitleLine2') }}
         </p>
 
         <!-- CTA buttons -->
@@ -224,13 +223,15 @@ const ctaRef = useScrollFade()
             <Play class="h-3.5 w-3.5" />
             {{ t('home.hero.ctaDemo') }}
           </NuxtLink>
-          <NuxtLink
-            :to="$localePath('/auth/sign-up')"
+          <a
+            href="https://github.com/reqcore-inc/reqcore"
+            target="_blank"
+            rel="noopener noreferrer"
             class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#09090b] shadow-[0_0_20px_rgba(255,255,255,0.08)] transition hover:bg-white/90 hover:shadow-[0_0_30px_rgba(255,255,255,0.12)]"
           >
+            <Github class="h-3.5 w-3.5" />
             {{ t('home.hero.ctaStart') }}
-            <ArrowRight class="h-3.5 w-3.5" />
-          </NuxtLink>
+          </a>
         </div>
         <p class="hero-animate hero-delay-4 mt-3 text-xs text-surface-500">{{ t('home.hero.hint') }}</p>
       </div>
@@ -419,11 +420,11 @@ const ctaRef = useScrollFade()
         <div class="mx-auto max-w-2xl text-center">
           <p class="text-sm font-semibold tracking-[0.2em] text-brand-400 uppercase">Why Reqcore</p>
           <h2 class="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            The Glass Box alternative
+            Built different. Built for devs.
           </h2>
           <p class="mt-5 text-base leading-relaxed text-surface-400 sm:text-lg">
-            Stop renting access to your own talent data. Own your infrastructure,
-            control your process, and scale without penalty.
+            Hiring tools shouldn't require a procurement process. Deploy on your own infra,
+            extend the source code, and scale without per-seat fees.
           </p>
         </div>
 
@@ -441,11 +442,11 @@ const ctaRef = useScrollFade()
                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400 ring-1 ring-inset ring-brand-500/20">
                   <img src="/database-icon.png" alt="Database" class="h-4 w-4 object-contain" />
                 </div>
-                <h3 class="text-[15px] font-semibold text-white">Ownership over Access</h3>
+                <h3 class="text-[15px] font-semibold text-white">Your infra. Your data.</h3>
               </div>
               <p class="mt-3 text-sm leading-relaxed text-surface-400">
                 Your Postgres database, your MinIO storage.
-                Cancel anytime — your talent pool stays with you <span class="font-medium text-white">forever</span>.
+                Cancel anytime — your candidate data stays with you <span class="font-medium text-white">forever</span>.
               </p>
               <!-- Badges -->
               <div class="mt-4 flex flex-wrap gap-1.5">
@@ -511,7 +512,7 @@ const ctaRef = useScrollFade()
                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500/10 text-accent-400 ring-1 ring-inset ring-accent-500/20">
                   <ScanEye class="h-4 w-4" :stroke-width="1.75" />
                 </div>
-                <h3 class="text-[15px] font-semibold text-white">Full Visibility</h3>
+                <h3 class="text-[15px] font-semibold text-white">Pipeline at a glance</h3>
               </div>
               <p class="mt-3 text-sm leading-relaxed text-surface-400">
                 See every candidate's journey at a glance. Track applications through your pipeline with a <span class="font-medium text-white">visual Kanban board</span> and real-time stats.
@@ -567,7 +568,7 @@ const ctaRef = useScrollFade()
             </div>
           </div>
 
-          <!-- ── Card 3: Anti-Growth Tax ───────────────────── -->
+          <!-- ── Card 3: No per-seat pricing ───────────────────── -->
           <div class="stagger-child bento-card group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c0f] transition-all duration-300 hover:border-white/[0.12]">
             <div class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true">
               <div class="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-success-500/[0.08] blur-[60px]" />
@@ -578,10 +579,10 @@ const ctaRef = useScrollFade()
                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success-500/10 text-success-400 ring-1 ring-inset ring-success-500/20">
                   <UsersRound class="h-4 w-4" :stroke-width="1.75" />
                 </div>
-                <h3 class="text-[15px] font-semibold text-white">Anti-Growth Tax</h3>
+                <h3 class="text-[15px] font-semibold text-white">No per-seat pricing</h3>
               </div>
               <p class="mt-3 text-sm leading-relaxed text-surface-400">
-                No per-seat pricing. Add as many recruiters and hiring managers as you need — <span class="font-medium text-white">your bill doesn't change</span>.
+                Add as many team members as you need — engineers, recruiters, hiring managers. <span class="font-medium text-white">Your bill doesn't change</span>.
               </p>
             </div>
 
@@ -620,7 +621,7 @@ const ctaRef = useScrollFade()
             </div>
           </div>
 
-          <!-- ── Card 4: Privacy Sovereignty ───────────────── -->
+          <!-- ── Card 4: Runs on your network ───────────── -->
           <div class="stagger-child bento-card group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c0f] transition-all duration-300 hover:border-white/[0.12]">
             <div class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true">
               <div class="absolute -bottom-20 -right-16 h-48 w-48 rounded-full bg-warning-500/[0.06] blur-[70px]" />
@@ -631,7 +632,7 @@ const ctaRef = useScrollFade()
                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-500/10 text-warning-400 ring-1 ring-inset ring-warning-500/20">
                   <ShieldCheck class="h-4 w-4" :stroke-width="1.75" />
                 </div>
-                <h3 class="text-[15px] font-semibold text-white">Privacy Sovereignty</h3>
+                <h3 class="text-[15px] font-semibold text-white">Runs on your network</h3>
               </div>
               <p class="mt-3 text-sm leading-relaxed text-surface-400">
                 Self-hosted storage with MinIO. Candidate PII <span class="font-medium text-white">never has to leave your private network</span>.
@@ -670,7 +671,7 @@ const ctaRef = useScrollFade()
 
         <!-- Tagline -->
         <p class="mt-10 text-center text-[15px] text-surface-500">
-          <span class="font-semibold text-surface-300">Use one or all.</span> Best-of-breed components. Integrated as a platform.
+          <span class="font-semibold text-surface-300">Built with tools you already know.</span> Easy to deploy. Easy to extend.
         </p>
       </div>
     </section>
@@ -685,9 +686,9 @@ const ctaRef = useScrollFade()
 
       <div class="relative mx-auto max-w-3xl px-6">
         <div class="mx-auto max-w-2xl text-center">
-          <p class="text-sm font-semibold tracking-[0.2em] text-brand-400 uppercase">Why we exist</p>
+          <p class="text-sm font-semibold tracking-[0.2em] text-brand-400 uppercase">Why we're building this</p>
           <h2 class="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Stop renting. Start owning.
+            Hiring software was built for HR.<br />We're rebuilding it for developers.
           </h2>
         </div>
 
@@ -701,33 +702,32 @@ const ctaRef = useScrollFade()
 
           <div class="space-y-6 text-base leading-[1.8] text-surface-300 sm:text-lg sm:leading-[1.85]">
             <p>
-              I'm building this because I'm tired of seeing companies get charged
-              <span class="font-semibold text-white">huge amounts of money for simple features.</span>
+              I'm building this because I needed an ATS that felt more like
+              <span class="font-semibold text-white">Linear than Workday.</span>
             </p>
 
             <p>
-              If you use Greenhouse or Workday, you know how it works. These big SaaS
-              companies don't care about the community. They just want to extract as
-              much money as they can &mdash; and they
-              <span class="font-semibold text-white">&ldquo;tax&rdquo; you just for growing.</span>
-              You're forced to pay them because, until now, there hasn't been a great
-              open-source alternative.
+              Most recruiting software is built for enterprise HR departments &mdash;
+              bloated UIs, per-seat pricing, vendor lock-in. As an engineer, I wanted
+              something I could <span class="font-semibold text-white">docker compose up</span>,
+              read the source code of, and extend when I needed to.
             </p>
 
             <p>
-              I want to change that. I'm building a tool that is
-              <span class="font-semibold text-white">100% AGPL-3.0 open source</span>
-              &mdash; in the same transparent spirit as Grafana or PostHog, but for hiring.
+              Reqcore is <span class="font-semibold text-white">100% AGPL-3.0 open source</span>
+              &mdash; in the same spirit as PostHog and Supabase, but for hiring.
+              It's an early release. Not everything is built yet. But the foundation is
+              solid, and it's improving every week.
             </p>
 
             <p>
-              This is about giving the power back to the recruiters. You should be able
-              to <span class="font-semibold text-white">own your data and your process</span>
-              without being squeezed by a corporate boardroom.
+              If you're an engineering team that wants to
+              <span class="font-semibold text-white">own your hiring stack</span>
+              the same way you own your infrastructure &mdash; this is for you.
             </p>
 
             <p class="text-lg font-semibold text-white sm:text-xl">
-              Let's stop renting our hiring tools and start owning them.
+              Check out the code. Try the demo. Tell us what's missing.
             </p>
           </div>
 
@@ -736,7 +736,7 @@ const ctaRef = useScrollFade()
             <img src="/eagle-mascot-logo-128.png" alt="Reqcore mascot" class="h-10 w-10 object-contain" />
             <div>
               <div class="text-sm font-semibold text-white">The Reqcore Team</div>
-              <div class="text-[13px] text-surface-500">Building the open-source applicant tracking system</div>
+              <div class="text-[13px] text-surface-500">Building the open-source ATS for developer teams</div>
             </div>
           </div>
         </div>
@@ -1301,11 +1301,11 @@ const ctaRef = useScrollFade()
           />
         </div>
         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-          Ready to own your hiring pipeline?
+          Ready to ditch your bloated ATS?
         </h2>
         <p class="mx-auto mt-5 max-w-lg text-base leading-relaxed text-surface-400 sm:text-lg">
-          Deploy in minutes. No credit card required.
-          Your data never leaves your infrastructure.
+          Clone the repo. Run <code class="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[0.85em] text-brand-300">docker compose up</code>. Start hiring.<br />
+          Early open-source release &mdash; your data stays on your servers.
         </p>
         <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <NuxtLink

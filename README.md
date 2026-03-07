@@ -2,7 +2,7 @@
 
 # Reqcore
 
-**The open-source ATS you own. No per-seat fees. No data lock-in. No secret algorithms.**
+**The open-source ATS built for developer teams. Self-hosted. No per-seat fees. Hackable.**
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![E2E Tests](https://github.com/reqcore-inc/reqcore/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/reqcore-inc/reqcore/actions/workflows/e2e-tests.yml)
@@ -19,9 +19,13 @@
 
 ---
 
-Most recruiting software holds your candidate data hostage behind per-seat pricing and opaque algorithms. Reqcore is different — it runs on **your** infrastructure, your team scales without increasing your software bill, and every feature is open source so you can inspect and modify everything.
+Most ATS software was designed for enterprise HR departments — complex procurement, per-seat licensing, no API access, no way to self-host. Reqcore is built for engineering teams who want to own their hiring stack the same way they own their infrastructure. It runs on **your** servers, scales without increasing your software bill, and every line of code is open source.
+
+> **Early open-source release** — Reqcore is actively developed and improving every week. The foundation is solid (jobs, pipeline, applications, documents, job board), but some features are still on the roadmap. Check the [Roadmap](ROADMAP.md) for what's shipped and what's next.
 
 ## Why Reqcore?
+
+*Built for teams that deploy with Docker, not procurement.*
 
 | | **Reqcore** | Greenhouse | Lever | Ashby | OpenCATS |
 |---|:---:|:---:|:---:|:---:|:---:|
@@ -302,7 +306,7 @@ Reqcore is actively developed. Here's what's next:
 |--------|-----------|
 | ✅ Shipped | Jobs, Candidates, Applications, Pipeline, Documents, Dashboard, Public Job Board, Custom Forms |
 | 🔨 Building | Resume parsing (PDF → structured data) |
-| 🔮 Planned | AI candidate ranking (Glass Box — shows matching logic), team collaboration, email notifications, candidate portal |
+| 🔮 Planned | AI candidate ranking (visible matching logic), team collaboration, email notifications, candidate portal |
 
 See the full [Roadmap](ROADMAP.md) and [Product Vision](PRODUCT.md).
 

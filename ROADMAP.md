@@ -236,7 +236,7 @@ Goal: AI helps recruiters find the best candidates — transparently.
 - [ ] Display parsed resume on candidate detail page
 - [ ] Auto-fill candidate fields from parsed resume
 
-### Milestone 10: AI Candidate Ranking (Glass Box)
+### Milestone 10: AI Candidate Ranking
 
 - [ ] Ranking criteria schema (configurable per job)
 - [ ] AI matching engine (job requirements ↔ candidate skills)

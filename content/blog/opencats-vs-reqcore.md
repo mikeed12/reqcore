@@ -19,11 +19,11 @@ It relies on a traditional [LAMP stack](https://en.wikipedia.org/wiki/LAMP_(soft
 
 However, users consistently mention a steep learning curve. A common sentiment on tech forums notes: "OpenCATS is a lifesaver for our small agency because it's free, but training new recruiters on its interface takes weeks." The architecture reflects its age, lacking native API integrations, modern containerized deployments, or automation features out of the box.
 
-## What is Reqcore? The Modern, Glass Box Alternative
+## What is Reqcore? The Modern Alternative
 
 Reqcore was built explicitly to replace the aging infrastructure of traditional open-source systems and the expensive, opaque algorithms of modern SaaS platforms. Designed around a modern tech stack ([Nuxt 4](https://nuxt.com/), Docker, MinIO, and Postgres), it provides complete infrastructure ownership.
 
-The standout philosophy of Reqcore is the **"Glass Box" AI principle**. Rather than hiding candidate fit scores behind proprietary algorithms, every AI ranking includes a visible, auditable **Matching Logic** summary. Recruiters see exactly why a candidate was recommended or passed over. 
+The core philosophy is transparency through open source: rather than hiding candidate fit scores behind proprietary algorithms, the code is public and every decision the system makes can be examined. AI candidate ranking is on the roadmap and will include a visible **Matching Logic** summary when it ships.
 
 Reqcore eliminates the anti-growth penalty—there is no per-seat pricing (drastically reducing the [total cost of ownership](/blog/total-cost-of-ownership-saas-ats-vs-self-hosted)). You own the software and the candidate data, ensuring your talent pipeline remains a permanent asset, not a monthly rental.
 
@@ -36,7 +36,7 @@ When placed side-by-side, the divergence in technical approach becomes clear:
 | **Core Tech Stack** | PHP, MySQL, Apache | [Nuxt 4](https://nuxt.com/), Typescript, Postgres, MinIO |
 | **Deployment** | Manual LAMP configuration | Instant via Docker Compose |
 | **User Interface** | Traditional, menu-heavy, dated | Recruiter-first, progressive disclosure |
-| **AI Matching** | None | "Glass Box" Transparent local AI (Ollama) |
+| **AI Matching** | None | Planned — visible matching logic with auditable scoring |
 | **Data Storage** | Local database / server folders | Local database + MinIO/S3 object storage |
 | **Pricing** | Free (Open Source) | Free (Open Source) |
 
@@ -77,14 +77,14 @@ The recruitment industry is rapidly adopting AI for candidate screening, yet mos
 
 **OpenCATS** operates without native AI or automation. Scanning resumes, tagging skills, and scoring candidates remain entirely manual processes.
 
-**Reqcore** integrates AI securely and transparently. Using local LLMs via [Ollama](https://ollama.com/), sensitive candidate Personally Identifiable Information (PII) never leaves the company's private network. Furthermore, Reqcore strictly adheres to the "Glass Box" mandate: if a candidate receives an 85% match for a software engineering role, the system outputs the exact semantic logic used to generate that score.
+**Reqcore** is designed with AI on the roadmap. Using local LLMs via [Ollama](https://ollama.com/), sensitive candidate PII will stay on the company's private network. When AI ranking ships, it will output the exact reasoning used to generate each score — which criteria matched, which didn't, and why.
 
 ## Verdict: Which Open Source ATS is Right for You?
 
 Choosing between these platforms depends entirely on your technical resources and workflow requirements. 
 
 - **Choose OpenCATS if** you are maintaining an existing LAMP stack, prefer traditional multi-page web applications, and do not need advanced UI or AI capabilities. It remains a reliable, truly zero-cost engine for basic record keeping.
-- **Choose Reqcore if** you want a modern, Docker-deployable architecture with a responsive UI. It is specifically designed for growing teams that need transparent AI candidate matching and complete data sovereignty without sacrificing recruiter efficiency.
+- **Choose Reqcore if** you want a modern, Docker-deployable architecture with a responsive UI. It is specifically designed for growing teams that need complete data sovereignty, transparent ranking logic (planned), and recruiter-first UX without per-seat pricing.
 
 By self-hosting either option, you guarantee your talent pool remains a permanent asset. 
 

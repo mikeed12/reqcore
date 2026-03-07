@@ -16,15 +16,15 @@
       "logIn": "Logg inn",
       "signUp": "Registrer deg"
     },
-    "badge": "Åpen kildekode og egendrift",
+    "badge": "Åpen kildekode ATS for utviklerteam",
     "hero": {
-      "titleLine1": "Rekrutteringssystemet",
-      "titleHighlight": "du faktisk eier",
-      "subtitleLine1": "Formål bygget for rekruttering av grupper som nekter pris per sete.",
-      "subtitleLine2": "Designet for den selvbetjente eraen.",
+      "titleLine1": "Rekrutteringsverktøy",
+      "titleHighlight": "bygget for utviklerteam",
+      "subtitleLine1": "De fleste ATS-verktøy er laget for HR-avdelinger.",
+      "subtitleLine2": "Reqcore er åpen kildekode, selvdriftet, og bygget med en stack du allerede kjenner.",
       "ctaDemo": "Prøv live demo",
-      "ctaStart": "Kom i gang gratis",
-      "hint": "Ingen registrering nødvendig - enkel tilgang med eksempeldata"
+      "ctaStart": "Se på GitHub",
+      "hint": "Tidlig åpen kildekode-utgivelse — prøv demoen med eksempeldata, ingen registrering nødvendig"
     }
   }
 }

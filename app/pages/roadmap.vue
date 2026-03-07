@@ -226,7 +226,7 @@ const items: RoadmapItem[] = [
   },
   {
     title: 'AI Ranking',
-    description: 'The Glass Box — transparent candidate matching where every AI decision is explainable and auditable.',
+    description: 'Transparent candidate ranking where every decision is explainable and auditable.',
     highlights: [
       'Configurable ranking criteria per job',
       'Job requirements ↔ candidate skills matching',

@@ -1,8 +1,8 @@
 # Reqcore — Product Vision & Goals
 
-## The Sovereign Recruitment Engine
+## The Developer-First ATS
 
-Reqcore is a lean, open-source Applicant Tracking System (ATS) designed to return power to the employer. We are the **"Glass Box"** alternative to the **"Black Box"** incumbents.
+Reqcore is a lean, open-source Applicant Tracking System (ATS) designed for engineering teams and developer-led companies. Built by developers, for developers.
 
 ## Problem Statement
 
@@ -17,23 +17,30 @@ Modern ATS platforms suffer from three structural problems:
 ### 1. Ownership over Access
 You *own* the infrastructure (Postgres + MinIO). Your talent pool is a permanent asset — not a monthly subscription. Self-host on your own servers or use a managed deployment; either way, the data is yours.
 
-### 2. Auditable Intelligence (The Glass Box)
-We reject "Secret Algorithms." When AI ranks a candidate, it **must** provide a visible **Matching Logic** summary so recruiters can verify the result. Every AI decision is explainable and auditable.
+### 2. Auditable Intelligence
+The source code is public — anyone can read exactly how the system works. Planned AI features will expose ranking logic in a visible **Matching Logic** summary so recruiters can verify and override results. No secret algorithms.
 
-### 3. The Anti-Growth Tax
-No per-seat pricing. Reqcore is designed to let companies scale their hiring teams without increasing their software bill.
+### 3. No Per-Seat Pricing
+Reqcore is designed to let companies scale their hiring teams without increasing their software bill.
 
-### 4. Privacy Sovereignty
+### 4. Runs on Your Network
 By supporting local-first storage (MinIO) and local AI models (Ollama), Reqcore is the only ATS where sensitive candidate PII never has to leave the company's private network.
 
 ## Target Users
 
 | Persona | Description | Primary Need |
 |---------|-------------|--------------|
-| **Recruiter** | Day-to-day user managing candidates and pipeline | Fast candidate pipeline, transparent AI ranking |
-| **Hiring Manager** | Reviews candidates, makes hiring decisions | Clear candidate comparisons, proof-based recommendations |
+| **Engineering Manager / CTO** | Decides on tooling, deploys infrastructure | Simple self-hosting, Docker Compose, clear infra docs, extensibility |
+| **Recruiter** | Day-to-day user managing candidates and pipeline | Fast candidate pipeline, clean UI, minimal friction |
+| **Hiring Manager** | Reviews candidates, makes hiring decisions | Clear candidate comparisons, process visibility |
 | **HR Administrator** | Manages org settings, team access, compliance | Multi-tenant control, data ownership, audit trails |
-| **Engineering/IT** | Deploys and maintains the system | Simple self-hosting, Docker Compose, clear infra docs |
+
+### Who this is for
+
+- **Startups and scale-ups** with engineering-led cultures who deploy their own tools
+- **Dev agencies and consultancies** that hire technical talent regularly
+- **Engineering-led orgs** that want to own their hiring data like they own their code
+- **Anyone who deploys with Docker** and doesn't want to go through procurement for an ATS
 
 ## Core Features (Current & Planned)
 
@@ -48,7 +55,7 @@ By supporting local-first storage (MinIO) and local AI models (Ollama), Reqcore 
 
 ### Phase 2 — Intelligence
 - [ ] Resume parsing (PDF → structured JSON)
-- [ ] AI candidate ranking with **Matching Logic** summary (Glass Box principle)
+- [ ] AI candidate ranking with visible **Matching Logic** summary
 - [ ] Skill extraction and matching
 - [ ] Local AI support via Ollama (privacy-first)
 
@@ -60,8 +67,8 @@ By supporting local-first storage (MinIO) and local AI models (Ollama), Reqcore 
 
 ## Design Principles
 
-1. **Show the Proof**: If the AI matches a skill, highlight it. If a candidate is "High Potential," explain why based on the data.
-2. **Recruiter-First UX**: Every screen should answer "what do I need to do next?" within 3 seconds.
+1. **Show the Proof**: Decisions should be backed by visible data. If a skill matched, highlight it. If a candidate is ranked highly, show why.
+2. **Developer-First UX**: Every screen should feel like a tool built by engineers — fast, keyboard-friendly, no unnecessary friction.
 3. **Progressive Disclosure**: Show summaries first, details on demand. Don't overwhelm with data.
 4. **Tone**: Professional, high-integrity, and engineering-grade. No marketing fluff in the UI.
 

@@ -3,7 +3,7 @@
 
 /* ─────────────────────────────────────────────────────────
    Reqcore — Design System
-   Modern, professional palette for a sovereignty-first ATS.
+   Modern, professional palette for a developer-first ATS.
    Built on Tailwind CSS v4 @theme — no tailwind.config.js.
    See: https://tailwindcss.com/docs/theme
    ───────────────────────────────────────────────────────── */
@@ -32,7 +32,7 @@
   --color-brand-950: oklch(18.0% 0.050 264);
 
   /* ── Accent ───────────────────────────────────────────
-     Teal — "Glass Box" transparency. Used sparingly for
+     Teal — transparency and auditability. Used sparingly for
      highlights, links, and AI-insight indicators. */
   --color-accent-50:  oklch(97.5% 0.014 180);
   --color-accent-100: oklch(94.0% 0.040 180);

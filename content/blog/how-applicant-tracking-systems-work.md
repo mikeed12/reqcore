@@ -76,11 +76,11 @@ Candidate scoring is where ATS platforms diverge most. There are three approache
 |---------------|-------------|-----------|------------|
 | **Keyword matching** | Compares resume text against job description keywords; counts matches | Simple, fast, predictable | Misses synonyms ("JavaScript" vs "JS"), penalizes non-standard resumes |
 | **Weighted rules** | Recruiter assigns point values to criteria (5 years experience = 10 pts, Python = 5 pts) | Transparent, customizable | Manual setup per job, doesn't scale |
-| **AI/ML scoring** | Model analyzes resume semantically and predicts candidate-job fit | Handles synonyms, context, and inferred skills | Often a black box — recruiter cannot see why a score was assigned |
+| **AI/ML scoring** | Model analyzes resume semantically and predicts candidate-job fit | Handles synonyms, context, and inferred skills | Often opaque — recruiter cannot see why a score was assigned |
 
 **The transparency problem:** Most commercial ATS platforms that use AI scoring hide the algorithm. A recruiter sees "87% match" but cannot determine whether that score reflects genuine qualification alignment or a statistical artifact. The [EU AI Act classifies employment-decision AI as high-risk](https://artificialintelligenceact.eu/), requiring transparency and human oversight — requirements that opaque scoring cannot meet.
 
-Transparent ATS platforms take a different approach. In [Reqcore](/), AI matching produces a readable summary explaining *why* each candidate scored the way they did — which qualifications matched, which were missing, and how heavily each factor was weighted. This is what we call the "Glass Box" principle: every AI decision is explainable and auditable, not hidden behind a proprietary algorithm.
+Transparent ATS platforms take a different approach. Reqcore's planned AI matching will produce a readable summary explaining *why* each candidate scored the way they did — which qualifications matched, which were missing, and how heavily each factor was weighted. Every ranking decision should be explainable and auditable, not hidden behind a proprietary algorithm.
 
 This distinction matters beyond compliance. Recruiters who understand *why* a candidate scored well can make faster, more confident decisions. Recruiters who see only a number have to second-guess the system or blindly trust it — neither of which produces good hiring outcomes.
 

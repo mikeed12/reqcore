@@ -16,15 +16,15 @@
       "logIn": "Log in",
       "signUp": "Sign up"
     },
-    "badge": "Open Source and Self-Hosted",
+    "badge": "Open Source ATS for Developer Teams",
     "hero": {
-      "titleLine1": "The hiring system",
-      "titleHighlight": "you actually own",
-      "subtitleLine1": "Purpose-built for recruiting teams who refuse per-seat pricing.",
-      "subtitleLine2": "Designed for the self-hosted era.",
+      "titleLine1": "Hiring software",
+      "titleHighlight": "built for developer teams",
+      "subtitleLine1": "Most ATS tools were designed for HR departments.",
+      "subtitleLine2": "Reqcore is open source, self-hosted, and built with a stack you already know.",
       "ctaDemo": "Try live demo",
-      "ctaStart": "Get started free",
-      "hint": "No sign-up needed - instant access with sample data"
+      "ctaStart": "View on GitHub",
+      "hint": "Early open-source release — try the demo with sample data, no sign-up needed"
     }
   }
 }

@@ -11,7 +11,7 @@
 
 ## 2. Vivid Quotes
 - **Quote 1 (OpenCATS user sentiment):** "OpenCATS is a lifesaver for our small agency because it's free, but training new recruiters on its interface takes weeks." — Anonymous tech forum user
-- **Quote 2 (Reqcore Product Vision):** "We are the 'Glass Box' alternative to the 'Black Box' incumbents. When AI ranks a candidate, it must provide a visible Matching Logic summary." — Reqcore Foundation
+- **Quote 2 (Reqcore Product Vision):** "When AI ranks a candidate, the reasoning must be visible — which skills matched, which were missing, how each factor was weighted. Recruiters need to verify and override, not blindly trust a score." — Reqcore Foundation
 - **Quote 3:** "Data hostage situations are the biggest risk in modern recruiting. Your talent pool should be a permanent asset, not a monthly subscription." — Reqcore Vision
 
 ## 3. Builder Experience Notes (Reqcore)

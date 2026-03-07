@@ -63,7 +63,7 @@ export default defineNuxtConfig({
   site: {
     url: siteUrl,
     name: 'Reqcore',
-    description: 'Open-source applicant tracking system with transparent AI, no per-seat pricing, and full data ownership. Self-host on your own infrastructure.',
+    description: 'Open-source applicant tracking system built for developer teams. Self-hosted, no per-seat pricing, and built with Nuxt, Postgres, and Docker.',
     defaultLocale: i18nDefaultLocale,
   },
 

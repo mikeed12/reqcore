@@ -142,7 +142,7 @@ This is the decision most hiring teams actually face. Here is an honest comparis
 | Dimension | Open Source ATS | Proprietary ATS (SaaS) |
 |-----------|----------------|----------------------|
 | **License cost** | $0 | $50–$150/seat/month |
-| **Source code access** | Full — read, modify, audit | None — black box |
+| **Source code access** | Full — read, modify, audit | None — proprietary, closed |
 | **Data ownership** | You own and host everything | Vendor stores and controls data |
 | **AI transparency** | Scoring logic visible and auditable | Hidden algorithms, unexplainable decisions |
 | **Customization** | Unlimited — modify the source code | Limited to vendor's configuration options |
@@ -162,9 +162,9 @@ For a detailed feature-by-feature comparison of specific platforms, see our [bes
 
 **License:** MIT | **Stack:** Nuxt 4, PostgreSQL 16, Drizzle ORM, MinIO | **Deployment:** Docker Compose, Railway
 
-Reqcore is the ATS we built after evaluating every open source and commercial option on the market. The core differentiators: transparent AI candidate scoring (Glass Box principle — every score is explainable), zero per-seat pricing, and a modern TypeScript codebase. Deploys in minutes with `docker compose up`. MIT-licensed, meaning you can modify and integrate without restriction.
+Reqcore is the ATS we built after evaluating every open source and commercial option on the market. The core differentiators: zero per-seat pricing, full data ownership, and a modern TypeScript codebase. AI candidate ranking is on the roadmap and will expose its scoring logic visibly when it ships. Deploys in minutes with `docker compose up`. MIT-licensed, meaning you can modify and integrate without restriction.
 
-**Best for:** Teams that value data ownership, transparent AI, and a modern developer experience. [Try the live demo](/auth/sign-in) or see the [product roadmap](/roadmap).
+**Best for:** Teams that value data ownership, open-source transparency, and a modern developer experience. [Try the live demo](/auth/sign-in) or see the [product roadmap](/roadmap).
 
 ### OpenCATS
 

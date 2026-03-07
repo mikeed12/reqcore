@@ -1,5 +1,5 @@
 ---
-title: AI Candidate Ranking (Glass Box)
+title: AI Candidate Ranking
 status: planned
 priority: high
 complexity: XL
@@ -11,7 +11,7 @@ competitors:
   opencats: poor
 ---
 
-AI-powered candidate ranking that matches job requirements against candidate skills — and shows its reasoning for every score. This is the **Glass Box** principle: no black-box algorithms making decisions about people.
+AI-powered candidate ranking that matches job requirements against candidate skills — and shows its reasoning for every score. No proprietary algorithms making unexplainable decisions about people.
 
 ## What it solves
 
@@ -25,10 +25,10 @@ Recruiters reviewing 200+ applications for a single role need help identifying t
 4. **Highlighted skill matches** — Visual indicators on pipeline cards showing matched vs. missing skills
 5. **Sort and filter by AI score** — Rank the pipeline by match quality with one click
 
-## Glass Box vs. Black Box
+## Transparent vs. Opaque Ranking
 
-| Aspect | Glass Box (Reqcore) | Black Box (Incumbents) |
-|--------|----------------------|----------------------|
+| Aspect | Reqcore (planned) | Incumbents |
+|--------|-------------------|------------|
 | Score visible | ✅ Always | ✅ Usually |
 | Reasoning shown | ✅ Per-criterion breakdown | ❌ "AI confidence score" |
 | Criteria editable | ✅ Per-job configuration | ❌ Fixed algorithm |

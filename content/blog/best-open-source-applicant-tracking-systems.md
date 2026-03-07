@@ -21,7 +21,7 @@ Before comparing individual platforms, it matters to understand why open source 
 
 **No per-seat pricing.** Most commercial ATS platforms charge $50–$150 per recruiter per month. A 10-person hiring team costs $12,000–$18,000 per year before add-ons. According to [SHRM data](https://www.shrm.org/topics-tools/news/talent-acquisition), the average cost-per-hire sits around $4,700, and recruiting software subscriptions take up a significant chunk of that HR budget. Open source eliminates that line item entirely.
 
-**Transparency.** You can read the code that handles your candidates. If the system uses AI to rank applicants, you can inspect the scoring logic — a capability the [EU AI Act classifies as essential](https://artificialintelligenceact.eu/) for high-risk AI systems, which includes employment decisions. No black boxes, no opaque algorithms making decisions about people without explanation.
+**Transparency.** You can read the code that handles your candidates. If the system uses AI to rank applicants, you can inspect the scoring logic — a capability the [EU AI Act classifies as essential](https://artificialintelligenceact.eu/) for high-risk AI systems, which includes employment decisions. Open source means no opaque algorithms making decisions about people without explanation.
 
 For a deeper analysis of these trade-offs, read our [self-hosted vs cloud ATS comparison](/blog/self-hosted-vs-cloud-ats).
 
@@ -59,7 +59,7 @@ We chose PostgreSQL 16 over MySQL because we needed robust JSON column support f
 
 **What sets it apart:**
 
-- **Transparent AI (Glass Box principle).** When Reqcore ranks a candidate, it shows the matching logic — a visible summary of why a candidate scored the way they did. Recruiters can verify, override, and trust the results. This is the opposite of the "secret algorithm" approach used by Greenhouse, Lever, and every other commercial platform.
+- **Transparent ranking (planned).** AI candidate matching is on the roadmap. When it ships, it will include a visible matching logic summary showing why a candidate scored the way they did — skills matched, gaps identified, weighting visible. The opposite of the "secret algorithm" approach used by Greenhouse, Lever, and every other commercial platform.
 - **Zero per-seat pricing.** Your entire team accesses the system at no additional cost. Adding a hiring manager or a new recruiter does not increase your software bill.
 - **Full data sovereignty.** Candidate data is stored in your PostgreSQL database. Resumes and documents go to MinIO (or any S3-compatible storage). You own the infrastructure. If you stop using Reqcore tomorrow, your data stays exactly where it is.
 - **Modern stack.** Built on Nuxt 4 with server-side rendering, Drizzle ORM for type-safe database queries, and Tailwind CSS for the UI. The codebase is readable and extensible — not a decade-old PHP monolith.
@@ -68,7 +68,7 @@ We chose PostgreSQL 16 over MySQL because we needed robust JSON column support f
 
 **Limitations:** Reqcore is newer than established options like OpenCATS. Advanced features like resume parsing and AI candidate matching are shipping in phases — the [product roadmap](/roadmap) is public and transparent.
 
-**Best for:** Teams that value data ownership, transparent AI, and a clean modern codebase. Developers and founders who want to self-host without wrestling with legacy PHP.
+**Best for:** Teams that value data ownership, open-source transparency, and a clean modern codebase. Developers and founders who want to self-host without wrestling with legacy PHP.
 
 ---
 
