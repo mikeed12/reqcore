@@ -62,7 +62,7 @@ All articles must follow the SEO Skill ([`.agents/skills/seo-skill/SKILL.md`](.a
 - [x] Best open source applicant tracking systems [2026] 🟢 — [`best-open-source-applicant-tracking-systems.md`](content/blog/best-open-source-applicant-tracking-systems.md)
 
 **Supporting — Roundups:**
-- [ ] Best free ATS software for startups 🟢
+- [x] Best free ATS software for startups 🟢 — [`best-free-ats-software-for-startups.md`](content/blog/best-free-ats-software-for-startups.md)
 - [ ] Best self-hosted ATS platforms compared 🟢
 - [ ] Best ATS for small businesses (under 50 employees) 🟢
 - [ ] Best ATS for recruiting agencies (open source options) 🟢
@@ -113,7 +113,7 @@ All articles must follow the SEO Skill ([`.agents/skills/seo-skill/SKILL.md`](.a
 
 ---
 
-**Phase 1 total: 35 articles** | Progress: 4/35
+**Phase 1 total: 35 articles** | Progress: 6/35
 
 ---
 
@@ -404,7 +404,7 @@ After Phase 4, return to Phase 1 content and upgrade:
 | Cluster | Phase | Articles | Done | Remaining |
 |---------|-------|----------|------|-----------|
 | 1. Fundamentals | 1 | 10 | 4 | 6 |
-| 2. Comparisons | 1 | 25 | 1 | 24 |
+| 2. Comparisons | 1 | 25 | 2 | 23 |
 | 3. AI & Automation | 2 | 17 | 0 | 17 |
 | 4. Data Ownership | 2 | 16 | 0 | 16 |
 | 5. Compliance | 4 | 15 | 0 | 15 |
@@ -412,7 +412,7 @@ After Phase 4, return to Phase 1 content and upgrade:
 | 7. Metrics | 3 | 15 | 0 | 15 |
 | 8. Career Pages | 4 | 9 | 0 | 9 |
 | 9. Migration | 4 | 9 | 0 | 9 |
-| **Total** | | **132** | **5** | **127** |
+| **Total** | | **132** | **6** | **126** |
 
 ---
 
