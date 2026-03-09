@@ -29,3 +29,14 @@ export function useServerPostHog(): PostHog | null {
 
   return client
 }
+
+/**
+ * Flush pending events and shut down the PostHog Node client.
+ * Call this during server shutdown (Nitro close hook) so that buffered events
+ * are not lost and the flush-interval timer does not prevent clean exit.
+ */
+export async function shutdownServerPostHog(): Promise<void> {
+  if (!client) return
+  await client.shutdown()
+  client = null
+}
