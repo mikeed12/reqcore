@@ -446,8 +446,13 @@ const statusCounts = computed(() => {
               <div class="min-w-0 flex-1">
                 <!-- Title row -->
                 <div class="flex items-center gap-2.5 flex-wrap">
-                  <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-100 truncate">
-                    {{ interviewItem.title }}
+                  <h3 class="text-sm font-semibold truncate">
+                    <NuxtLink
+                      :to="$localePath(`/dashboard/interviews/${interviewItem.id}`)"
+                      class="text-surface-900 dark:text-surface-100 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                    >
+                      {{ interviewItem.title }}
+                    </NuxtLink>
                   </h3>
                   <span
                     class="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset"
@@ -600,7 +605,14 @@ const statusCounts = computed(() => {
                       {{ statusConfig[interviewItem.status]?.label }}
                     </span>
                   </div>
-                  <p class="mt-1 text-sm font-medium text-surface-900 dark:text-surface-100">{{ interviewItem.title }}</p>
+                  <p class="mt-1 text-sm font-medium">
+                    <NuxtLink
+                      :to="$localePath(`/dashboard/interviews/${interviewItem.id}`)"
+                      class="text-surface-900 dark:text-surface-100 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                    >
+                      {{ interviewItem.title }}
+                    </NuxtLink>
+                  </p>
                   <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-surface-500 dark:text-surface-400">
                     <span class="inline-flex items-center gap-1">
                       <UserRound class="size-3" />
