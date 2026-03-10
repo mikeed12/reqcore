@@ -71,6 +71,13 @@
       "when": 1772615027489,
       "tag": "0009_organic_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773152393640,
+      "tag": "0010_glamorous_mattie_franklin",
+      "breakpoints": true
     }
   ]
 }

@@ -316,6 +316,35 @@ function selectCandidate(index: number) {
 
 const isMutating = ref(false)
 
+// ─────────────────────────────────────────────
+// Interview scheduling sidebar
+// ─────────────────────────────────────────────
+
+const showInterviewSidebar = ref(false)
+const interviewTargetApplication = ref<{ id: string; name: string } | null>(null)
+
+function openInterviewScheduler() {
+  if (!currentSummary.value) return
+  interviewTargetApplication.value = {
+    id: currentSummary.value.id,
+    name: `${currentSummary.value.candidateFirstName} ${currentSummary.value.candidateLastName}`,
+  }
+  showInterviewSidebar.value = true
+}
+
+async function handleInterviewScheduled() {
+  showInterviewSidebar.value = false
+  interviewTargetApplication.value = null
+
+  // Transition the application status to 'interview' after scheduling
+  if (currentSummary.value && currentSummary.value.status !== 'interview') {
+    const allowed = APPLICATION_STATUS_TRANSITIONS[currentSummary.value.status] ?? []
+    if (allowed.includes('interview')) {
+      await changeStatus('interview')
+    }
+  }
+}
+
 async function changeStatus(status: string) {
   if (!currentSummary.value || isMutating.value) return
   const applicationId = currentSummary.value.id
@@ -854,7 +883,7 @@ function closeDocPreview() {
                   :disabled="isMutating"
                   class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                   :class="transitionClasses[nextStatus] ?? 'border border-surface-300 text-surface-600 hover:bg-surface-50'"
-                  @click="changeStatus(nextStatus)"
+                  @click="nextStatus === 'interview' ? openInterviewScheduler() : changeStatus(nextStatus)"
                 >
                   {{ transitionLabels[nextStatus] ?? nextStatus }}
                 </button>
@@ -1287,6 +1316,16 @@ function closeDocPreview() {
       :job-id="jobId"
       @close="showApplyModal = false"
       @created="handleCandidateApplied"
+    />
+
+    <!-- Interview Schedule Sidebar -->
+    <InterviewScheduleSidebar
+      v-if="showInterviewSidebar && interviewTargetApplication"
+      :application-id="interviewTargetApplication.id"
+      :candidate-name="interviewTargetApplication.name"
+      :job-title="jobData?.title ?? ''"
+      @close="showInterviewSidebar = false"
+      @scheduled="handleInterviewScheduled"
     />
 
     <!-- Document Preview Modal -->

@@ -214,6 +214,46 @@ export const joinRequest = pgTable('join_request', {
 // Collaboration: Comments
 // ─────────────────────────────────────────────
 
+// ─────────────────────────────────────────────
+// Interviews
+// ─────────────────────────────────────────────
+
+export const interviewTypeEnum = pgEnum('interview_type', [
+  'phone', 'video', 'in_person', 'panel', 'technical', 'take_home',
+])
+
+export const interviewStatusEnum = pgEnum('interview_status', [
+  'scheduled', 'completed', 'cancelled', 'no_show',
+])
+
+/**
+ * Interviews scheduled for applications in the pipeline.
+ * Each interview is linked to an application (which contains candidate + job).
+ * Multiple interviews can exist per application (e.g., phone screen → technical → panel).
+ */
+export const interview = pgTable('interview', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  applicationId: text('application_id').notNull().references(() => application.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  type: interviewTypeEnum('type').notNull().default('video'),
+  status: interviewStatusEnum('status').notNull().default('scheduled'),
+  scheduledAt: timestamp('scheduled_at').notNull(),
+  duration: integer('duration').notNull().default(60),
+  location: text('location'),
+  notes: text('notes'),
+  interviewers: jsonb('interviewers').$type<string[]>(),
+  createdById: text('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  index('interview_organization_id_idx').on(t.organizationId),
+  index('interview_application_id_idx').on(t.applicationId),
+  index('interview_scheduled_at_idx').on(t.scheduledAt),
+  index('interview_status_idx').on(t.status),
+  index('interview_created_by_id_idx').on(t.createdById),
+]))
+
 export const commentTargetEnum = pgEnum('comment_target', ['candidate', 'application', 'job'])
 
 /**
@@ -285,6 +325,7 @@ export const applicationRelations = relations(application, ({ one, many }) => ({
   candidate: one(candidate, { fields: [application.candidateId], references: [candidate.id] }),
   job: one(job, { fields: [application.jobId], references: [job.id] }),
   responses: many(questionResponse),
+  interviews: many(interview),
 }))
 
 export const documentRelations = relations(document, ({ one }) => ({
@@ -322,4 +363,10 @@ export const joinRequestRelations = relations(joinRequest, ({ one }) => ({
   user: one(user, { fields: [joinRequest.userId], references: [user.id] }),
   organization: one(organization, { fields: [joinRequest.organizationId], references: [organization.id] }),
   reviewedBy: one(user, { fields: [joinRequest.reviewedById], references: [user.id] }),
+}))
+
+export const interviewRelations = relations(interview, ({ one }) => ({
+  organization: one(organization, { fields: [interview.organizationId], references: [organization.id] }),
+  application: one(application, { fields: [interview.applicationId], references: [application.id] }),
+  createdBy: one(user, { fields: [interview.createdById], references: [user.id] }),
 }))
