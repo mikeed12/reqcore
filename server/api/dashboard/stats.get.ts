@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
       .orderBy(desc(application.createdAt))
       .limit(10),
 
-    // 8. Top 5 active (open) jobs by total application count
+    // 8. Top 5 active (open) jobs by total application count + per-status breakdown
     db
       .select({
         id: job.id,
@@ -89,6 +89,11 @@ export default defineEventHandler(async (event) => {
         createdAt: job.createdAt,
         applicationCount: count(application.id).as('application_count'),
         newCount: sql<number>`count(case when ${application.status} = 'new' then 1 end)`.as('new_count'),
+        screeningCount: sql<number>`count(case when ${application.status} = 'screening' then 1 end)`.as('screening_count'),
+        interviewCount: sql<number>`count(case when ${application.status} = 'interview' then 1 end)`.as('interview_count'),
+        offerCount: sql<number>`count(case when ${application.status} = 'offer' then 1 end)`.as('offer_count'),
+        hiredCount: sql<number>`count(case when ${application.status} = 'hired' then 1 end)`.as('hired_count'),
+        rejectedCount: sql<number>`count(case when ${application.status} = 'rejected' then 1 end)`.as('rejected_count'),
       })
       .from(job)
       .leftJoin(application, eq(application.jobId, job.id))

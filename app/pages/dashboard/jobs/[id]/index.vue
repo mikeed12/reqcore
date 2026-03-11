@@ -45,7 +45,12 @@ const PIPELINE_STATUSES = ['new', 'screening', 'interview', 'offer', 'hired', 'r
 type PipelineStatus = typeof PIPELINE_STATUSES[number]
 
 const applications = computed(() => appData.value?.data ?? [])
-const focusStatus = ref<PipelineStatus>('new')
+
+// Read initial pipeline stage from URL query param (?stage=screening)
+const initialStage = PIPELINE_STATUSES.includes(route.query.stage as any)
+  ? (route.query.stage as PipelineStatus)
+  : 'new'
+const focusStatus = ref<PipelineStatus>(initialStage)
 
 const focusedApplications = computed(() =>
   applications.value.filter((application) => application.status === focusStatus.value),

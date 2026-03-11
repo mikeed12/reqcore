@@ -101,7 +101,8 @@ const jobTabs = computed(() => {
 // ─────────────────────────────────────────────
 
 const mainNav = [
-  { label: 'Jobs', to: '/dashboard', icon: Briefcase, exact: true },
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, exact: true },
+  { label: 'Jobs', to: '/dashboard/jobs', icon: Briefcase, exact: false },
   { label: 'Candidates', to: '/dashboard/candidates', icon: Users, exact: false },
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
@@ -303,7 +304,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutsideUser))
       >
         <div class="flex items-center gap-4 px-4 lg:px-6 h-10">
           <NuxtLink
-            :to="$localePath('/dashboard')"
+            :to="$localePath('/dashboard/jobs')"
             class="flex items-center gap-1 text-xs font-medium text-surface-400 dark:text-surface-500 hover:text-surface-600 dark:hover:text-surface-300 transition-colors no-underline shrink-0"
           >
             <ChevronLeft class="size-3.5" />

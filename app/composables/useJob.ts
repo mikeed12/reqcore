@@ -50,7 +50,7 @@ export function useJob(id: MaybeRefOrGetter<string>) {
       throw error
     }
     await refreshNuxtData('jobs')
-    await navigateTo(localePath('/dashboard'))
+    await navigateTo(localePath('/dashboard/jobs'))
   }
 
   return { job, status, error, refresh, updateJob, deleteJob }
