@@ -382,14 +382,14 @@ const isEmpty = computed(() =>
                 </div>
 
                 <!-- Pipeline bar for this job -->
-                <div v-if="getJobActiveTotal(j) > 0" class="mb-3.5">
+                <div v-if="j.applicationCount > 0" class="mb-3.5">
                   <div class="flex h-1.5 rounded-full overflow-hidden bg-surface-100 dark:bg-surface-800">
                     <div
-                      v-for="stage in stageConfig.slice(0, 4).filter(s => getJobStageCount(j, s.key) > 0)"
+                      v-for="stage in stageConfig.filter(s => getJobStageCount(j, s.key) > 0)"
                       :key="stage.key"
                       class="transition-all duration-500"
                       :class="stage.color"
-                      :style="{ width: `${(getJobStageCount(j, stage.key) / getJobActiveTotal(j)) * 100}%` }"
+                      :style="{ width: `${(getJobStageCount(j, stage.key) / j.applicationCount) * 100}%` }"
                     />
                   </div>
                 </div>
