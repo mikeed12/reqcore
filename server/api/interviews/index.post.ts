@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
       candidateEmail: app.candidate.email,
       candidateName,
       interviewerEmails: body.interviewers ?? [],
-    ).then(async (result) => {
+    }).then(async (result) => {
       if (result) {
         await db.update(interview)
           .set({ googleCalendarEventId: result.id, googleCalendarEventLink: result.htmlLink })
