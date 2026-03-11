@@ -495,6 +495,10 @@ const statusCounts = computed(() => {
                     <Users class="size-3.5" />
                     {{ interviewItem.interviewers.join(', ') }}
                   </span>
+                  <span v-if="interviewItem.googleCalendarEventId" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                    <Calendar class="size-3" />
+                    Google Calendar
+                  </span>
                 </div>
               </div>
             </div>
@@ -623,6 +627,10 @@ const statusCounts = computed(() => {
                     <span v-if="interviewItem.location" class="inline-flex items-center gap-1 truncate max-w-[160px]">
                       <MapPin class="size-3 shrink-0" />
                       {{ interviewItem.location }}
+                    </span>
+                    <span v-if="interviewItem.googleCalendarEventId" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                      <Calendar class="size-2.5" />
+                      Synced
                     </span>
                   </div>
                 </div>

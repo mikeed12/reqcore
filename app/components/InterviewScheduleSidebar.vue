@@ -726,6 +726,12 @@ async function handleMoveToInterview() {
               <span class="text-[11px] text-surface-400 dark:text-surface-500 shrink-0">· {{ form.timezone.split('/').pop()?.replace(/_/g, ' ') }}</span>
             </div>
 
+            <!-- Google Calendar sync notice -->
+            <div v-if="calendarConnected" class="mb-3 flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 border border-emerald-200/60 dark:border-emerald-800/40">
+              <Calendar class="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span class="text-[12px] text-emerald-700 dark:text-emerald-400 font-medium">This interview will be synced to Google Calendar</span>
+            </div>
+
             <div class="flex items-center gap-3">
               <button
                 type="button"

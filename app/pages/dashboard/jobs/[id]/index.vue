@@ -1755,6 +1755,12 @@ function closeDocPreview() {
                           <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
                             {{ formatInterviewDateTime(iv.scheduledAt) }} · {{ iv.duration }} min · {{ interviewTypeLabels[iv.type] ?? iv.type }}
                           </p>
+                          <div v-if="iv.googleCalendarEventId" class="mt-1">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                              <Calendar class="size-2.5" />
+                              Google Calendar
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div class="flex items-center gap-2.5 shrink-0">
@@ -1889,6 +1895,15 @@ function closeDocPreview() {
                               <dt class="text-[11px] font-medium text-surface-400 dark:text-surface-500 mb-0.5">Notes</dt>
                               <dd class="text-surface-700 dark:text-surface-300 text-[13px] leading-relaxed whitespace-pre-wrap">
                                 {{ iv.notes }}
+                              </dd>
+                            </div>
+                            <div v-if="iv.googleCalendarEventId" class="col-span-2">
+                              <dt class="text-[11px] font-medium text-surface-400 dark:text-surface-500 mb-0.5">Calendar Sync</dt>
+                              <dd class="text-[13px]">
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 text-emerald-700 dark:text-emerald-400 font-medium">
+                                  <Calendar class="size-3.5" />
+                                  Synced to Google Calendar
+                                </span>
                               </dd>
                             </div>
                           </dl>

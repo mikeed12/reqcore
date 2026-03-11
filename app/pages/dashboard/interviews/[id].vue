@@ -422,6 +422,14 @@ const localePath = useLocalePath()
           <CheckCheck class="size-3.5" />
           Invitation sent {{ formatDate(interview.invitationSentAt) }}
         </div>
+        <!-- Google Calendar sync status -->
+        <div
+          v-if="interview.googleCalendarEventId"
+          class="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400"
+        >
+          <Calendar class="size-3.5" />
+          Synced to Google Calendar
+        </div>
       </div>
 
       <!-- Quick actions -->
@@ -631,6 +639,15 @@ const localePath = useLocalePath()
             <div v-if="interview.location">
               <dt class="text-surface-400">Location / Link</dt>
               <dd class="text-surface-700 dark:text-surface-200 font-medium break-all">{{ interview.location }}</dd>
+            </div>
+            <div v-if="interview.googleCalendarEventId">
+              <dt class="text-surface-400">Calendar</dt>
+              <dd>
+                <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  <CheckCircle2 class="size-3.5" />
+                  Synced to Google Calendar
+                </span>
+              </dd>
             </div>
           </dl>
         </div>
