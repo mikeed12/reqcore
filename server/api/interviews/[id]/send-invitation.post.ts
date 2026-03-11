@@ -2,7 +2,9 @@ import { and, eq } from 'drizzle-orm'
 import { interview, application, candidate, job, emailTemplate, organization } from '../../../database/schema'
 import { interviewIdParamSchema } from '../../../utils/schemas/interview'
 import { sendInterviewInvitationSchema, SYSTEM_TEMPLATES } from '../../../utils/schemas/emailTemplate'
-import { sendInterviewInvitationEmail, type InterviewEmailData } from '../../../utils/email'
+import { sendInterviewInvitationEmail, renderTemplate, type InterviewEmailData } from '../../../utils/email'
+import { generateInterviewICS } from '../../../utils/ical'
+import { buildResponseUrls } from '../../../utils/interview-token'
 
 const interviewTypeLabels: Record<string, string> = {
   video: 'Video Call',
@@ -103,8 +105,58 @@ export default defineEventHandler(async (event) => {
 
   // Build template data
   const scheduledAt = new Date(interviewRecord.scheduledAt)
+  const candidateName = `${app.candidate.firstName} ${app.candidate.lastName}`
+  const fromEmail = env.RESEND_FROM_EMAIL
+
+  // Derive the base URL for response links
+  const baseUrl = env.BETTER_AUTH_URL
+    || (env.RAILWAY_PUBLIC_DOMAIN ? `https://${env.RAILWAY_PUBLIC_DOMAIN}` : '')
+    || 'https://reqcore.com'
+
+  // Generate signed response URLs (accept / decline / tentative)
+  const responseUrls = buildResponseUrls(baseUrl, interviewRecord.id, env.BETTER_AUTH_SECRET)
+
+  // Generate iCalendar (.ics) attachment
+  const renderedSubjectForIcs = renderTemplate(emailSubject, {
+    candidateName,
+    candidateFirstName: app.candidate.firstName,
+    candidateLastName: app.candidate.lastName,
+    candidateEmail: app.candidate.email,
+    jobTitle: app.job.title,
+    interviewTitle: interviewRecord.title,
+    interviewDate: '',
+    interviewTime: '',
+    interviewDuration: interviewRecord.duration,
+    interviewType: interviewTypeLabels[interviewRecord.type] ?? interviewRecord.type,
+    interviewLocation: interviewRecord.location,
+    interviewers: interviewRecord.interviewers as string[] | null,
+    organizationName: org.name,
+  })
+
+  const icsContent = generateInterviewICS({
+    interviewId: interviewRecord.id,
+    summary: renderedSubjectForIcs,
+    description: [
+      `Interview: ${interviewRecord.title}`,
+      `Position: ${app.job.title}`,
+      `Candidate: ${candidateName}`,
+      `Type: ${interviewTypeLabels[interviewRecord.type] ?? interviewRecord.type}`,
+      `Duration: ${interviewRecord.duration} minutes`,
+      ...(interviewRecord.location ? [`Location: ${interviewRecord.location}`] : []),
+      '',
+      `Respond: ${responseUrls.accepted}`,
+    ].join('\n'),
+    startTime: scheduledAt,
+    durationMinutes: interviewRecord.duration,
+    location: interviewRecord.location,
+    organizerName: org.name,
+    organizerEmail: fromEmail.replace(/^.*</, '').replace(/>$/, ''),
+    attendeeEmail: app.candidate.email,
+    attendeeName: candidateName,
+  })
+
   const emailData: InterviewEmailData = {
-    candidateName: `${app.candidate.firstName} ${app.candidate.lastName}`,
+    candidateName,
     candidateFirstName: app.candidate.firstName,
     candidateLastName: app.candidate.lastName,
     candidateEmail: app.candidate.email,
@@ -126,6 +178,8 @@ export default defineEventHandler(async (event) => {
     interviewLocation: interviewRecord.location,
     interviewers: interviewRecord.interviewers as string[] | null,
     organizationName: org.name,
+    responseUrls,
+    icsContent,
   }
 
   // Send the email

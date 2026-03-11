@@ -41,6 +41,8 @@ export default defineEventHandler(async (event) => {
         notes: interview.notes,
         interviewers: interview.interviewers,
         invitationSentAt: interview.invitationSentAt,
+        candidateResponse: interview.candidateResponse,
+        candidateRespondedAt: interview.candidateRespondedAt,
         createdAt: interview.createdAt,
         updatedAt: interview.updatedAt,
         applicationId: interview.applicationId,

@@ -204,7 +204,16 @@ async function handleSubmit() {
 
     await navigateTo(`/jobs/${jobSlug}/confirmation`)
   } catch (err: any) {
-    submitError.value = err.data?.statusMessage ?? 'Something went wrong. Please try again.'
+    const message = err.data?.statusMessage ?? 'Something went wrong. Please try again.'
+    submitError.value = message
+
+    // Surface file-related errors next to the resume field so the user knows what to fix
+    const status = err.data?.statusCode ?? err.statusCode
+    if (status === 400 && message.toLowerCase().includes('resume')) {
+      errors.value.resume = message
+    } else if (status === 502 && message.toLowerCase().includes('resume')) {
+      errors.value.resume = message
+    }
   } finally {
     isSubmitting.value = false
   }

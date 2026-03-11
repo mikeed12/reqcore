@@ -272,7 +272,38 @@ export default defineEventHandler(async (event) => {
   }
 
   // ─────────────────────────────────────────────
-  // 5. Upsert candidate — deduplicate by email within this org
+  // 5. Validate resume MIME type early (before any DB writes)
+  // ─────────────────────────────────────────────
+
+  let resumeMimeType: string | undefined
+  if (resumeUpload) {
+    if (resumeUpload.data.length > MAX_FILE_SIZE) {
+      throw createError({
+        statusCode: 413,
+        statusMessage: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024} MB`,
+      })
+    }
+
+    const detectedType = await fileTypeFromBuffer(resumeUpload.data)
+    resumeMimeType = detectedType?.mime
+
+    if (!resumeMimeType || resumeMimeType === 'application/x-cfb') {
+      const OLE2_MAGIC = Buffer.from([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])
+      if (resumeUpload.data.length >= 8 && Buffer.compare(resumeUpload.data.subarray(0, 8), OLE2_MAGIC) === 0) {
+        resumeMimeType = 'application/msword'
+      }
+    }
+
+    if (!resumeMimeType || !ALLOWED_MIME_TYPES.includes(resumeMimeType as typeof ALLOWED_MIME_TYPES[number])) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid file type for resume. Allowed: PDF, DOC, DOCX',
+      })
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // 6. Upsert candidate — deduplicate by email within this org
   // ─────────────────────────────────────────────
 
   let existingCandidate = await db.query.candidate.findFirst({
@@ -310,7 +341,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // ─────────────────────────────────────────────
-  // 6. Check for duplicate application
+  // 7. Check for duplicate application
   // ─────────────────────────────────────────────
 
   const existingApplication = await db.query.application.findFirst({
@@ -330,7 +361,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // ─────────────────────────────────────────────
-  // 7. Create application
+  // 8. Create application
   // ─────────────────────────────────────────────
 
   const [newApplication] = await db.insert(application).values({
@@ -342,7 +373,7 @@ export default defineEventHandler(async (event) => {
   }).returning({ id: application.id })
 
   // ─────────────────────────────────────────────
-  // 8. Store question responses
+  // 9. Store question responses
   // ─────────────────────────────────────────────
 
   if (validResponses.length > 0) {
@@ -357,7 +388,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // ─────────────────────────────────────────────
-  // 9. Upload files to S3 and create document records
+  // 10. Upload files to S3 and create document records
   // ─────────────────────────────────────────────
 
   // Enforce per-candidate document limit (same as authenticated upload)
@@ -434,40 +465,12 @@ export default defineEventHandler(async (event) => {
   }
 
   // ─────────────────────────────────────────────
-  // 10. Upload built-in resume file
+  // 11. Upload built-in resume file
   // ─────────────────────────────────────────────
 
   if (resumeUpload) {
     const file = resumeUpload
-
-    // Validate file size
-    if (file.data.length > MAX_FILE_SIZE) {
-      throw createError({
-        statusCode: 413,
-        statusMessage: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024} MB`,
-      })
-    }
-
-    // Validate MIME from magic bytes
-    const detectedType = await fileTypeFromBuffer(file.data)
-    let mimeType = detectedType?.mime
-
-    // file-type detects OLE2 compound binary documents (.doc) as 'application/x-cfb'.
-    // Newer versions no longer return undefined for these files, so we must also
-    // check the detected type (not only the !mimeType case) to remap to application/msword.
-    if (!mimeType || mimeType === 'application/x-cfb') {
-      const OLE2_MAGIC = Buffer.from([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])
-      if (file.data.length >= 8 && Buffer.compare(file.data.subarray(0, 8), OLE2_MAGIC) === 0) {
-        mimeType = 'application/msword'
-      }
-    }
-
-    if (!mimeType || !ALLOWED_MIME_TYPES.includes(mimeType as typeof ALLOWED_MIME_TYPES[number])) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid file type for resume. Allowed: PDF, DOC, DOCX',
-      })
-    }
+    const mimeType = resumeMimeType!
 
     const docId = crypto.randomUUID()
     const extension = MIME_TO_EXTENSION[mimeType] ?? 'bin'
@@ -493,7 +496,19 @@ export default defineEventHandler(async (event) => {
         console.error('[Reqcore] Failed to clean up orphaned S3 object:', storageKey, cleanupError)
       }
       console.error('[Reqcore] Resume upload failed during application:', uploadError)
-      throw createError({ statusCode: 502, statusMessage: 'Failed to store resume. Please retry.' })
+
+      // Roll back: delete the application so the user can fix the file and retry
+      try {
+        // Delete question responses first (FK constraint)
+        await db.delete(questionResponse)
+          .where(eq(questionResponse.applicationId, newApplication!.id))
+        await db.delete(application)
+          .where(eq(application.id, newApplication!.id))
+      } catch (rollbackError) {
+        console.error('[Reqcore] Failed to roll back application after resume upload failure:', rollbackError)
+      }
+
+      throw createError({ statusCode: 502, statusMessage: 'Failed to upload your resume. Please try again.' })
     }
   }
 

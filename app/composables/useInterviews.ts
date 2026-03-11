@@ -11,6 +11,8 @@ export interface Interview {
   notes: string | null
   interviewers: string[] | null
   invitationSentAt: string | null
+  candidateResponse: 'pending' | 'accepted' | 'declined' | 'tentative'
+  candidateRespondedAt: string | null
   applicationId: string
   candidateFirstName: string
   candidateLastName: string

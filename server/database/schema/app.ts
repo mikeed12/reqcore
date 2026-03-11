@@ -226,6 +226,10 @@ export const interviewStatusEnum = pgEnum('interview_status', [
   'scheduled', 'completed', 'cancelled', 'no_show',
 ])
 
+export const candidateResponseEnum = pgEnum('candidate_response', [
+  'pending', 'accepted', 'declined', 'tentative',
+])
+
 /**
  * Interviews scheduled for applications in the pipeline.
  * Each interview is linked to an application (which contains candidate + job).
@@ -245,6 +249,8 @@ export const interview = pgTable('interview', {
   interviewers: jsonb('interviewers').$type<string[]>(),
   createdById: text('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   invitationSentAt: timestamp('invitation_sent_at'),
+  candidateResponse: candidateResponseEnum('candidate_response').notNull().default('pending'),
+  candidateRespondedAt: timestamp('candidate_responded_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (t) => ([

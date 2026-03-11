@@ -201,6 +201,14 @@ export interface InterviewEmailData {
   interviewLocation: string | null
   interviewers: string[] | null
   organizationName: string
+  /** Response URLs for accept/decline/tentative (omitted = no response links) */
+  responseUrls?: {
+    accepted: string
+    declined: string
+    tentative: string
+  }
+  /** iCalendar (.ics) file content to attach */
+  icsContent?: string
 }
 
 /**
@@ -231,6 +239,7 @@ export function renderTemplate(template: string, data: InterviewEmailData): stri
 
 /**
  * Send an interview invitation email to a candidate via Resend.
+ * Includes an .ics calendar attachment and response links when provided.
  * Falls back to console.info when RESEND_API_KEY is not set.
  */
 export async function sendInterviewInvitationEmail(params: {
@@ -248,19 +257,31 @@ export async function sendInterviewInvitationEmail(params: {
       `[Reqcore] Interview invitation email → ${params.data.candidateEmail} | ` +
       `Subject: ${renderedSubject} | ` +
       `Interview: ${params.data.interviewTitle} | ` +
-      `Date: ${params.data.interviewDate} at ${params.data.interviewTime}`,
+      `Date: ${params.data.interviewDate} at ${params.data.interviewTime}` +
+      (params.data.icsContent ? ' | .ics attached' : '') +
+      (params.data.responseUrls ? ' | response links included' : ''),
     )
     return
   }
 
   const fromEmail = env.RESEND_FROM_EMAIL
 
+  // Build attachments array — include .ics when available
+  const attachments = params.data.icsContent
+    ? [{
+        filename: 'interview.ics',
+        content: Buffer.from(params.data.icsContent).toString('base64'),
+        content_type: 'text/calendar; method=REQUEST',
+      }]
+    : undefined
+
   const { error } = await resend.emails.send({
     from: fromEmail,
     to: [params.data.candidateEmail],
     subject: renderedSubject,
     html: buildInterviewInvitationHtml(renderedSubject, renderedBody, params.data),
-    text: renderedBody,
+    text: buildInterviewInvitationText(renderedBody, params.data.responseUrls),
+    ...(attachments ? { attachments } : {}),
     tags: [
       { name: 'category', value: 'interview-invitation' },
       { name: 'interview', value: params.data.interviewTitle.slice(0, 256).replace(/[^a-zA-Z0-9_-]/g, '_') },
@@ -277,6 +298,49 @@ export async function sendInterviewInvitationEmail(params: {
 
 function buildInterviewInvitationHtml(subject: string, bodyText: string, data: InterviewEmailData): string {
   const bodyHtml = escapeHtml(bodyText).replace(/\n/g, '<br />')
+
+  // Build response buttons HTML when URLs are available
+  const responseButtonsHtml = data.responseUrls
+    ? `
+          <!-- Response Buttons -->
+          <tr>
+            <td style="padding:0 32px 32px;">
+              <div style="border-top:1px solid #e4e4e7;padding-top:24px;">
+                <p style="margin:0 0 16px;font-size:14px;font-weight:600;color:#09090b;text-align:center;">
+                  Can you make it?
+                </p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center">
+                      <table role="presentation" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="padding:0 4px;">
+                            <a href="${escapeHtml(data.responseUrls.accepted)}" target="_blank" rel="noopener noreferrer"
+                               style="display:inline-block;padding:10px 20px;background-color:#16a34a;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;border-radius:6px;line-height:1;">
+                              &#10003; Accept
+                            </a>
+                          </td>
+                          <td style="padding:0 4px;">
+                            <a href="${escapeHtml(data.responseUrls.tentative)}" target="_blank" rel="noopener noreferrer"
+                               style="display:inline-block;padding:10px 20px;background-color:#ca8a04;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;border-radius:6px;line-height:1;">
+                              &#63; Maybe
+                            </a>
+                          </td>
+                          <td style="padding:0 4px;">
+                            <a href="${escapeHtml(data.responseUrls.declined)}" target="_blank" rel="noopener noreferrer"
+                               style="display:inline-block;padding:10px 20px;background-color:#dc2626;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;border-radius:6px;line-height:1;">
+                              &#10005; Decline
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>`
+    : ''
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -303,7 +367,7 @@ function buildInterviewInvitationHtml(subject: string, bodyText: string, data: I
                 ${bodyHtml}
               </div>
             </td>
-          </tr>
+          </tr>${responseButtonsHtml}
           <!-- Footer -->
           <tr>
             <td style="padding:16px 32px;text-align:center;border-top:1px solid #f4f4f5;background-color:#fafafa;">
@@ -318,4 +382,27 @@ function buildInterviewInvitationHtml(subject: string, bodyText: string, data: I
   </table>
 </body>
 </html>`
+}
+
+/**
+ * Build plain-text email body with response links appended.
+ */
+function buildInterviewInvitationText(
+  renderedBody: string,
+  responseUrls?: InterviewEmailData['responseUrls'],
+): string {
+  if (!responseUrls) return renderedBody
+
+  return [
+    renderedBody,
+    '',
+    '─────────────────────────────',
+    'Respond to this invitation:',
+    '',
+    `✓ Accept: ${responseUrls.accepted}`,
+    `? Maybe:  ${responseUrls.tentative}`,
+    `✗ Decline: ${responseUrls.declined}`,
+    '',
+    '─────────────────────────────',
+  ].join('\n')
 }
