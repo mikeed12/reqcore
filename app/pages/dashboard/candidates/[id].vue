@@ -150,6 +150,18 @@ function handleApplied() {
 }
 
 // ─────────────────────────────────────────────
+// Interview scheduling
+// ─────────────────────────────────────────────
+
+const showInterviewSidebar = ref(false)
+const interviewTargetApp = ref<{ id: string; jobTitle: string } | null>(null)
+
+function openScheduleInterview(app: { id: string; job: { title: string } }) {
+  interviewTargetApp.value = { id: app.id, jobTitle: app.job.title }
+  showInterviewSidebar.value = true
+}
+
+// ─────────────────────────────────────────────
 // Documents — upload, download, delete
 // ─────────────────────────────────────────────
 
@@ -293,10 +305,14 @@ function formatFileSize(bytes: number | null | undefined): string {
               {{ candidate.firstName }} {{ candidate.lastName }}
             </h1>
             <div class="flex items-center gap-4 text-sm text-surface-500">
-              <span class="inline-flex items-center gap-1">
+              <a
+                :href="`mailto:${candidate.email}`"
+                target="_blank"
+                class="inline-flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 hover:underline cursor-pointer transition-colors"
+              >
                 <Mail class="size-3.5" />
                 {{ candidate.email }}
-              </span>
+              </a>
               <span v-if="candidate.phone" class="inline-flex items-center gap-1">
                 <Phone class="size-3.5" />
                 {{ candidate.phone }}
@@ -328,7 +344,13 @@ function formatFileSize(bytes: number | null | undefined): string {
           <dl class="grid grid-cols-2 gap-3 text-sm">
             <div>
               <dt class="text-surface-400">Email</dt>
-              <dd class="text-surface-700 dark:text-surface-200 font-medium">{{ candidate.email }}</dd>
+              <dd class="text-surface-700 dark:text-surface-200 font-medium">
+                <a
+                  :href="`mailto:${candidate.email}`"
+                  target="_blank"
+                  class="hover:text-brand-600 dark:hover:text-brand-400 hover:underline cursor-pointer transition-colors"
+                >{{ candidate.email }}</a>
+              </dd>
             </div>
             <div>
               <dt class="text-surface-400">Phone</dt>
@@ -403,27 +425,39 @@ function formatFileSize(bytes: number | null | undefined): string {
           </div>
 
           <div v-else class="space-y-2">
-            <NuxtLink
+            <div
               v-for="app in candidate.applications"
               :key="app.id"
-              :to="$localePath(`/dashboard/applications/${app.id}`)"
               class="flex items-center justify-between rounded-lg border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 px-4 py-3 hover:border-surface-300 dark:hover:border-surface-700 hover:shadow-sm transition-all group"
             >
-              <div class="min-w-0 flex-1">
+              <NuxtLink
+                :to="$localePath(`/dashboard/applications/${app.id}`)"
+                class="min-w-0 flex-1 block"
+              >
                 <h4 class="text-sm font-semibold text-surface-900 dark:text-surface-100 group-hover:text-brand-600 transition-colors truncate">
                   {{ app.job.title }}
                 </h4>
                 <span class="text-xs text-surface-400">
                   Applied {{ new Date(app.createdAt).toLocaleDateString() }}
                 </span>
+              </NuxtLink>
+              <div class="flex items-center gap-2 shrink-0 ml-3">
+                <button
+                  class="inline-flex items-center gap-1 rounded-lg border border-surface-200 dark:border-surface-700 px-2 py-1 text-xs font-medium text-surface-600 dark:text-surface-400 hover:border-brand-400 dark:hover:border-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 hover:text-brand-700 dark:hover:text-brand-300 transition-all cursor-pointer"
+                  title="Schedule Interview"
+                  @click="openScheduleInterview(app)"
+                >
+                  <Calendar class="size-3" />
+                  Schedule
+                </button>
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0"
+                  :class="applicationStatusClasses[app.status] ?? 'bg-surface-100 text-surface-600'"
+                >
+                  {{ app.status }}
+                </span>
               </div>
-              <span
-                class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0"
-                :class="applicationStatusClasses[app.status] ?? 'bg-surface-100 text-surface-600'"
-              >
-                {{ app.status }}
-              </span>
-            </NuxtLink>
+            </div>
           </div>
         </div>
 
@@ -433,6 +467,16 @@ function formatFileSize(bytes: number | null | undefined): string {
           :candidate-id="candidateId"
           @close="showApplyModal = false"
           @created="handleApplied"
+        />
+
+        <!-- Interview Schedule Sidebar -->
+        <InterviewScheduleSidebar
+          v-if="showInterviewSidebar && interviewTargetApp"
+          :application-id="interviewTargetApp.id"
+          :candidate-name="`${candidate.firstName} ${candidate.lastName}`"
+          :job-title="interviewTargetApp.jobTitle"
+          @close="showInterviewSidebar = false"
+          @scheduled="showInterviewSidebar = false"
         />
 
         <!-- Documents tab -->

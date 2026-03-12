@@ -320,8 +320,8 @@ async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
 
       isPublished.value = true
     } else {
-      // Saved as draft — go to dashboard
-      await navigateTo(localePath('/dashboard'))
+      // Saved as draft — go to jobs list
+      await navigateTo(localePath('/dashboard/jobs'))
     }
   } catch (err: any) {
     submitError.value = err?.data?.statusMessage ?? 'Something went wrong'

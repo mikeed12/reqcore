@@ -4,7 +4,7 @@ import {
   Kanban, FileText, LogOut, Table2,
   Sun, Moon, MessageSquarePlus, Settings,
   ChevronDown, Menu, X, Users, ChevronLeft,
-  LayoutDashboard,
+  LayoutDashboard, Calendar,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -101,9 +101,11 @@ const jobTabs = computed(() => {
 // ─────────────────────────────────────────────
 
 const mainNav = [
-  { label: 'Jobs', to: '/dashboard', icon: Briefcase, exact: true },
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, exact: true },
+  { label: 'Jobs', to: '/dashboard/jobs', icon: Briefcase, exact: false },
   { label: 'Candidates', to: '/dashboard/candidates', icon: Users, exact: false },
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
+  { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
 ]
 
@@ -292,9 +294,6 @@ onUnmounted(() => document.removeEventListener('click', onClickOutsideUser))
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0 -translate-y-1"
       enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-1"
     >
       <div
         v-if="activeJobId"
@@ -302,7 +301,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutsideUser))
       >
         <div class="flex items-center gap-4 px-4 lg:px-6 h-10">
           <NuxtLink
-            :to="$localePath('/dashboard')"
+            :to="$localePath('/dashboard/jobs')"
             class="flex items-center gap-1 text-xs font-medium text-surface-400 dark:text-surface-500 hover:text-surface-600 dark:hover:text-surface-300 transition-colors no-underline shrink-0"
           >
             <ChevronLeft class="size-3.5" />

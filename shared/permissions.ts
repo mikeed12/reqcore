@@ -33,6 +33,8 @@ const atsStatements = {
   application: ['create', 'read', 'update', 'delete'],
   document: ['create', 'read', 'delete'],
   comment: ['create', 'read', 'update', 'delete'],
+  interview: ['create', 'read', 'update', 'delete'],
+  emailTemplate: ['create', 'read', 'update', 'delete'],
   activityLog: ['read'],
 } as const
 
@@ -52,37 +54,37 @@ export const ac = createAccessControl(statements)
 // member  — recruiters.  Read jobs, manage candidates/applications in pipeline.
 
 export const owner = ac.newRole({
-  // Inherit all default owner permissions (org:*, member:*, invitation:*)
   ...ownerAc.statements,
-  // ATS permissions — full control
   job: ['create', 'read', 'update', 'delete'],
   candidate: ['create', 'read', 'update', 'delete'],
   application: ['create', 'read', 'update', 'delete'],
   document: ['create', 'read', 'delete'],
   comment: ['create', 'read', 'update', 'delete'],
+  interview: ['create', 'read', 'update', 'delete'],
+  emailTemplate: ['create', 'read', 'update', 'delete'],
   activityLog: ['read'],
 })
 
 export const admin = ac.newRole({
-  // Inherit default admin permissions (no org:delete, no owner transfer)
   ...adminAc.statements,
-  // ATS permissions — full CRUD
   job: ['create', 'read', 'update', 'delete'],
   candidate: ['create', 'read', 'update', 'delete'],
   application: ['create', 'read', 'update', 'delete'],
   document: ['create', 'read', 'delete'],
   comment: ['create', 'read', 'update', 'delete'],
+  interview: ['create', 'read', 'update', 'delete'],
+  emailTemplate: ['create', 'read', 'update', 'delete'],
   activityLog: ['read'],
 })
 
 export const member = ac.newRole({
-  // Inherit default member permissions (read-only on org data)
   ...memberAc.statements,
-  // ATS permissions — read jobs, manage own pipeline
   job: ['read'],
   candidate: ['create', 'read', 'update'],
   application: ['create', 'read', 'update'],
   document: ['create', 'read'],
   comment: ['create', 'read', 'delete'],
+  interview: ['create', 'read', 'update'],
+  emailTemplate: ['create', 'read', 'update'],
   activityLog: ['read'],
 })

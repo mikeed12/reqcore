@@ -214,6 +214,121 @@ export const joinRequest = pgTable('join_request', {
 // Collaboration: Comments
 // ─────────────────────────────────────────────
 
+// ─────────────────────────────────────────────
+// Calendar Integrations
+// ─────────────────────────────────────────────
+
+export const calendarProviderEnum = pgEnum('calendar_provider', ['google'])
+
+/**
+ * Per-user calendar integration credentials.
+ * Tokens are encrypted at rest with AES-256-GCM derived from BETTER_AUTH_SECRET.
+ * Each user can connect one calendar provider. The `calendarId` is the target
+ * calendar for interview events (defaults to 'primary').
+ */
+export const calendarIntegration = pgTable('calendar_integration', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  provider: calendarProviderEnum('provider').notNull().default('google'),
+  /** AES-256-GCM encrypted Google OAuth2 access token */
+  accessTokenEncrypted: text('access_token_encrypted').notNull(),
+  /** AES-256-GCM encrypted Google OAuth2 refresh token */
+  refreshTokenEncrypted: text('refresh_token_encrypted').notNull(),
+  /** Google Calendar ID to create events in (defaults to 'primary') */
+  calendarId: text('calendar_id').notNull().default('primary'),
+  /** Email address of the connected Google account */
+  accountEmail: text('account_email'),
+  /** Google push notification channel ID for two-way sync */
+  webhookChannelId: text('webhook_channel_id'),
+  /** Google push notification resource ID (needed for stop) */
+  webhookResourceId: text('webhook_resource_id'),
+  /** When the webhook channel expires (Google max = 7 days) */
+  webhookExpiration: timestamp('webhook_expiration'),
+  /** Incremental sync token from Google Calendar API */
+  syncToken: text('sync_token'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  uniqueIndex('calendar_integration_user_provider_idx').on(t.userId, t.provider),
+  index('calendar_integration_webhook_channel_idx').on(t.webhookChannelId),
+]))
+
+// ─────────────────────────────────────────────
+// Interviews
+// ─────────────────────────────────────────────
+
+export const interviewTypeEnum = pgEnum('interview_type', [
+  'phone', 'video', 'in_person', 'panel', 'technical', 'take_home',
+])
+
+export const interviewStatusEnum = pgEnum('interview_status', [
+  'scheduled', 'completed', 'cancelled', 'no_show',
+])
+
+export const candidateResponseEnum = pgEnum('candidate_response', [
+  'pending', 'accepted', 'declined', 'tentative',
+])
+
+/**
+ * Interviews scheduled for applications in the pipeline.
+ * Each interview is linked to an application (which contains candidate + job).
+ * Multiple interviews can exist per application (e.g., phone screen → technical → panel).
+ */
+export const interview = pgTable('interview', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  applicationId: text('application_id').notNull().references(() => application.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  type: interviewTypeEnum('type').notNull().default('video'),
+  status: interviewStatusEnum('status').notNull().default('scheduled'),
+  scheduledAt: timestamp('scheduled_at').notNull(),
+  duration: integer('duration').notNull().default(60),
+  location: text('location'),
+  notes: text('notes'),
+  interviewers: jsonb('interviewers').$type<string[]>(),
+  createdById: text('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  invitationSentAt: timestamp('invitation_sent_at'),
+  candidateResponse: candidateResponseEnum('candidate_response').notNull().default('pending'),
+  candidateRespondedAt: timestamp('candidate_responded_at'),
+  /** Google Calendar event ID for two-way sync (null = not synced) */
+  googleCalendarEventId: text('google_calendar_event_id'),
+  /** Direct link to the Google Calendar event (htmlLink from Google API) */
+  googleCalendarEventLink: text('google_calendar_event_link'),
+  /** IANA timezone for the scheduled time (e.g. 'America/New_York') */
+  timezone: text('timezone').notNull().default('UTC'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  index('interview_organization_id_idx').on(t.organizationId),
+  index('interview_application_id_idx').on(t.applicationId),
+  index('interview_scheduled_at_idx').on(t.scheduledAt),
+  index('interview_status_idx').on(t.status),
+  index('interview_created_by_id_idx').on(t.createdById),
+]))
+
+// ─────────────────────────────────────────────
+// Email Templates
+// ─────────────────────────────────────────────
+
+/**
+ * Reusable email templates for interview invitations.
+ * Each org can create custom templates or use the system defaults.
+ * Template body supports placeholder variables like {{candidateName}}, {{jobTitle}}, etc.
+ */
+export const emailTemplate = pgTable('email_template', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+  createdById: text('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  index('email_template_organization_id_idx').on(t.organizationId),
+  index('email_template_created_by_id_idx').on(t.createdById),
+]))
+
 export const commentTargetEnum = pgEnum('comment_target', ['candidate', 'application', 'job'])
 
 /**
@@ -285,6 +400,7 @@ export const applicationRelations = relations(application, ({ one, many }) => ({
   candidate: one(candidate, { fields: [application.candidateId], references: [candidate.id] }),
   job: one(job, { fields: [application.jobId], references: [job.id] }),
   responses: many(questionResponse),
+  interviews: many(interview),
 }))
 
 export const documentRelations = relations(document, ({ one }) => ({
@@ -322,4 +438,19 @@ export const joinRequestRelations = relations(joinRequest, ({ one }) => ({
   user: one(user, { fields: [joinRequest.userId], references: [user.id] }),
   organization: one(organization, { fields: [joinRequest.organizationId], references: [organization.id] }),
   reviewedBy: one(user, { fields: [joinRequest.reviewedById], references: [user.id] }),
+}))
+
+export const interviewRelations = relations(interview, ({ one }) => ({
+  organization: one(organization, { fields: [interview.organizationId], references: [organization.id] }),
+  application: one(application, { fields: [interview.applicationId], references: [application.id] }),
+  createdBy: one(user, { fields: [interview.createdById], references: [user.id] }),
+}))
+
+export const emailTemplateRelations = relations(emailTemplate, ({ one }) => ({
+  organization: one(organization, { fields: [emailTemplate.organizationId], references: [organization.id] }),
+  createdBy: one(user, { fields: [emailTemplate.createdById], references: [user.id] }),
+}))
+
+export const calendarIntegrationRelations = relations(calendarIntegration, ({ one }) => ({
+  user: one(user, { fields: [calendarIntegration.userId], references: [user.id] }),
 }))
