@@ -41,6 +41,9 @@ COPY --chown=reqcore:reqcore --from=builder /app/.output ./.output
 # They must live alongside .output so the path resolves correctly inside the container
 COPY --chown=reqcore:reqcore --from=builder /app/server/database/migrations ./server/database/migrations
 
+# CHANGELOG.md is read at runtime by /api/updates/changelog
+COPY --chown=reqcore:reqcore --from=builder /app/CHANGELOG.md ./CHANGELOG.md
+
 # Seed script support — copies node_modules, package.json, and server source
 # so `docker compose exec app npm run db:seed` works inside the container
 COPY --chown=reqcore:reqcore --from=builder /app/package.json ./package.json
