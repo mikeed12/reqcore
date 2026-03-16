@@ -15,6 +15,9 @@ useSeoMeta({
 const { orgs, isOrgsLoading, switchOrg, createOrg } = useCurrentOrg()
 const { acceptInviteLink } = useInviteLinks()
 const localePath = useLocalePath()
+const { track } = useTrack()
+
+onMounted(() => track('onboarding_viewed', { mode: viewMode.value }))
 
 const orgName = ref('')
 const slug = ref('')
@@ -104,6 +107,7 @@ async function handleCreateOrg() {
 
   try {
     await createOrg({ name: orgName.value.trim(), slug: slug.value.trim() })
+    track('org_created')
   }
   catch (err: any) {
     error.value = err?.message ?? 'Failed to create organization. The slug may already be taken.'
@@ -154,6 +158,8 @@ async function handleAcceptInviteCode() {
     const result = await acceptInviteLink(token)
 
     inviteCodeSuccess.value = true
+
+    track('org_joined', { method: 'invite_code' })
 
     // Set the new org as active and navigate to dashboard
     await authClient.organization.setActive({
@@ -233,6 +239,7 @@ async function handleSubmitJoinRequest() {
       },
     })
     requestSuccess.value = `Join request sent to ${selectedOrg.value.name}! An admin will review it.`
+    track('org_joined', { method: 'search_request' })
     selectedOrg.value = null
     joinRequestMessage.value = ''
   }

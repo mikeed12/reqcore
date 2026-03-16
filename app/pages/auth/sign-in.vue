@@ -17,6 +17,9 @@ const isLoading = ref(false)
 const route = useRoute()
 const config = useRuntimeConfig()
 const localePath = useLocalePath()
+const { track } = useTrack()
+
+onMounted(() => track('signin_page_viewed'))
 
 if (route.query.live === '1') {
   email.value = config.public.liveDemoEmail
@@ -45,6 +48,8 @@ async function handleSignIn() {
   }
 
   clearNuxtData()
+
+  track('signin_completed')
 
   // If the user was accepting an invitation, redirect back to accept it
   const pendingInvitation = route.query.invitation as string | undefined

@@ -14,6 +14,7 @@ useSeoMeta({
 
 const localePath = useLocalePath()
 const { createCandidate } = useCandidates()
+const { track } = useTrack()
 
 // Form state
 const form = ref({
@@ -60,6 +61,7 @@ async function handleSubmit() {
       email: form.value.email,
       phone: form.value.phone || undefined,
     })
+    track('candidate_added')
     await navigateTo(localePath('/dashboard/candidates'))
   } catch (err: any) {
     const message = err.data?.statusMessage ?? 'Something went wrong'

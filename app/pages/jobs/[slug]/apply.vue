@@ -7,6 +7,9 @@ definePageMeta({
 
 const route = useRoute()
 const jobSlug = route.params.slug as string
+const { track } = useTrack()
+
+onMounted(() => track('application_started', { slug: jobSlug }))
 
 // Fetch public job data (no auth needed)
 const { data: job, status: fetchStatus, error: fetchError } = useFetch(
@@ -202,6 +205,7 @@ async function handleSubmit() {
       })
     }
 
+    track('application_submitted', { slug: jobSlug })
     await navigateTo(`/jobs/${jobSlug}/confirmation`)
   } catch (err: any) {
     const message = err.data?.statusMessage ?? 'Something went wrong. Please try again.'

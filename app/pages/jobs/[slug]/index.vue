@@ -7,6 +7,9 @@ definePageMeta({
 
 const route = useRoute()
 const jobSlug = route.params.slug as string
+const { track } = useTrack()
+
+onMounted(() => track('public_job_viewed', { slug: jobSlug }))
 
 const { data: job, status: fetchStatus, error: fetchError } = useFetch(
   `/api/public/jobs/${jobSlug}`,

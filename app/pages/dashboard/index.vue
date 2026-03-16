@@ -18,6 +18,9 @@ useSeoMeta({
 
 const { activeOrg } = useCurrentOrg()
 const localePath = useLocalePath()
+const { track } = useTrack()
+
+onMounted(() => track('dashboard_viewed'))
 
 // ─────────────────────────────────────────────
 // Fetch dashboard stats

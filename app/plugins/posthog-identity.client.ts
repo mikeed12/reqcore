@@ -48,6 +48,21 @@ export default defineNuxtPlugin({
     // ── Privacy: strip query params and hashes from captured URLs ──
     // These may contain tokens, invitation IDs, or other PII.
     const originalCapture = posthog.capture.bind(posthog)
+
+    // ── Cross-domain identity linking ──
+    // The marketing site (reqcore.com) appends ?ph_did=<distinct_id> to links
+    // pointing here.  If present, alias the marketing visitor's anonymous ID to
+    // this session so the full journey is stitched together in PostHog.
+    const url = new URL(window.location.href)
+    const marketingDistinctId = url.searchParams.get('ph_did')
+    if (marketingDistinctId && storedConsent === 'granted') {
+      // Create an alias so both IDs resolve to the same person in PostHog.
+      posthog.alias(marketingDistinctId)
+      // Strip the param from the URL to prevent it leaking into pageview props.
+      url.searchParams.delete('ph_did')
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash)
+    }
+
     posthog.capture = (eventName: string, properties?: Record<string, unknown>, options?: unknown) => {
       const props = { ...properties }
       for (const key of SENSITIVE_URL_PROPS) {

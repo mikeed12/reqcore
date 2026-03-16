@@ -20,6 +20,7 @@ const route = useRoute()
 const localePath = useLocalePath()
 const jobId = route.params.id as string
 const { handlePreviewReadOnlyError } = usePreviewReadOnly()
+const { track } = useTrack()
 
 // ─────────────────────────────────────────────
 // Job data (with update/delete support)
@@ -479,6 +480,8 @@ async function handleInterviewScheduled() {
   const scheduledApplicationId = interviewTargetApplication.value?.id ?? currentSummary.value?.id
   interviewTargetApplication.value = null
 
+  track('interview_scheduled')
+
   // Refresh the interviews list
   await refreshJobInterviews()
 
@@ -754,6 +757,11 @@ async function changeStatus(status: string) {
     await $fetch(`/api/applications/${applicationId}`, {
       method: 'PATCH',
       body: { status },
+    })
+
+    track('pipeline_stage_changed', {
+      from_stage: currentSummary.value.status,
+      to_stage: status,
     })
 
     await refreshApps()

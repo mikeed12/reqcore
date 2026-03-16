@@ -34,6 +34,7 @@ useSeoMeta({
 
 const localePath = useLocalePath()
 const { createJob } = useJobs()
+const { track } = useTrack()
 
 type QuestionType =
   | 'short_text'
@@ -277,6 +278,8 @@ async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
       requireCoverLetter: applicationForm.value.requireCoverLetter,
     })
 
+    track('job_created')
+
     if (applicationForm.value.questions.length > 0 && created?.id) {
       await Promise.all(
         applicationForm.value.questions.map((question, index) => (
@@ -308,6 +311,8 @@ async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
       finalApplicationLink.value = `${base}/jobs/${slug}/apply`
       createdJobSlug.value = slug
       createdJobId.value = created.id
+
+      track('job_published')
 
       // Auto-copy to clipboard
       try {

@@ -7,6 +7,9 @@ definePageMeta({
 
 const route = useRoute()
 const jobSlug = route.params.slug as string
+const { track } = useTrack()
+
+onMounted(() => track('application_confirmed', { slug: jobSlug }))
 
 // Optionally fetch job title for a nicer confirmation
 const { data: job } = useFetch(`/api/public/jobs/${jobSlug}`, {

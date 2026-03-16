@@ -18,6 +18,7 @@ const { activeOrg } = useCurrentOrg()
 const { data: session } = await authClient.useSession(useFetch)
 const { allowed: canManageMembers } = usePermission({ member: ['create'] })
 const { allowed: canInvite } = usePermission({ invitation: ['create'] })
+const { track } = useTrack()
 const { allowed: canCancelInvite } = usePermission({ invitation: ['cancel'] })
 const {
   listInviteLinks: fetchInviteLinksApi,
@@ -115,6 +116,7 @@ async function handleInvite() {
     })
     if (result.error) throw new Error(String(result.error.message ?? 'Failed to send invitation'))
     inviteSuccess.value = `Invitation sent to ${inviteEmail.value.trim()}`
+    track('member_invited')
     inviteEmail.value = ''
     inviteRole.value = 'member'
     setTimeout(() => { inviteSuccess.value = '' }, 5000)

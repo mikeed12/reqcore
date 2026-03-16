@@ -18,6 +18,9 @@ const confirmPassword = ref('')
 const error = ref('')
 const isLoading = ref(false)
 const localePath = useLocalePath()
+const { track } = useTrack()
+
+onMounted(() => track('signup_page_viewed'))
 
 // If the user arrived from an invitation link, we'll redirect back after sign-up
 const pendingInvitation = computed(() => route.query.invitation as string | undefined)
@@ -42,6 +45,8 @@ async function handleSignUp() {
 
   isLoading.value = true
 
+  track('signup_submitted')
+
   const result = await authClient.signUp.email({
     email: email.value,
     password: password.value,
@@ -50,9 +55,12 @@ async function handleSignUp() {
 
   if (result.error) {
     error.value = result.error.message ?? 'Sign-up failed. Please try again.'
+    track('signup_failed', { error_type: result.error.code ?? 'unknown' })
     isLoading.value = false
     return
   }
+
+  track('signup_completed')
 
   clearNuxtData()
 
