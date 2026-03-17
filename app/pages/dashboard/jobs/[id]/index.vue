@@ -1823,6 +1823,13 @@ function closeDocPreview() {
                   </p>
                 </div>
 
+                <!-- AI Score Breakdown -->
+                <ScoreBreakdown
+                  v-if="currentSummary"
+                  :application-id="currentSummary.id"
+                  @scored="refreshApps()"
+                />
+
                 <!-- Quick links -->
                 <div class="flex items-center gap-4 pt-1">
                   <NuxtLink
