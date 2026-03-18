@@ -22,6 +22,7 @@ import postgres from 'postgres'
 import { eq } from 'drizzle-orm'
 import { hashPassword } from 'better-auth/crypto'
 import * as schema from '../database/schema'
+import { encrypt } from '../utils/encryption'
 
 // ─────────────────────────────────────────────
 // Config
@@ -2183,6 +2184,47 @@ async function seed() {
   }
 
   console.log(`✅ Created ${totalScores} criterion scores and ${totalRuns} analysis runs`)
+
+  // Insert AI config with pricing so the dashboard shows costs
+  const INPUT_PRICE_PER_1M = '0.1500' // GPT-4o-mini input
+  const OUTPUT_PRICE_PER_1M = '0.6000' // GPT-4o-mini output
+
+  const encryptionSecret = process.env.BETTER_AUTH_SECRET ?? 'demo-secret-change-me'
+  const demoApiKey = encrypt('sk-demo-placeholder-key', encryptionSecret)
+
+  await db.insert(schema.aiConfig).values({
+    id: id(),
+    organizationId: orgId,
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    apiKeyEncrypted: demoApiKey,
+    inputPricePer1m: INPUT_PRICE_PER_1M,
+    outputPricePer1m: OUTPUT_PRICE_PER_1M,
+    maxTokens: 4096,
+    createdAt: daysAgo(20),
+    updatedAt: daysAgo(20),
+  })
+
+  // Compute and log total demo cost
+  const allRuns = await db
+    .select({
+      promptTokens: schema.analysisRun.promptTokens,
+      completionTokens: schema.analysisRun.completionTokens,
+    })
+    .from(schema.analysisRun)
+    .where(eq(schema.analysisRun.organizationId, orgId))
+
+  let totalPrompt = 0
+  let totalCompletion = 0
+  for (const r of allRuns) {
+    totalPrompt += r.promptTokens ?? 0
+    totalCompletion += r.completionTokens ?? 0
+  }
+  const totalCost = (totalPrompt / 1_000_000) * Number(INPUT_PRICE_PER_1M)
+    + (totalCompletion / 1_000_000) * Number(OUTPUT_PRICE_PER_1M)
+
+  console.log(`✅ Created AI config with pricing (input: $${INPUT_PRICE_PER_1M}/1M, output: $${OUTPUT_PRICE_PER_1M}/1M)`)
+  console.log(`   📊 Total demo cost: $${totalCost.toFixed(4)} (${totalPrompt} prompt + ${totalCompletion} completion tokens)`)
 
   // Enable autoScoreOnApply on the Senior Full-Stack Engineer job to showcase the feature
   const firstJobId = jobIds[0]
