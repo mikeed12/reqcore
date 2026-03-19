@@ -22,7 +22,15 @@ const { data: scoreData, status, refresh } = useFetch(
   },
 )
 
-const hasScores = computed(() => (scoreData.value?.scores?.length ?? 0) > 0)
+// Cache last successful data so switching candidates doesn't flash "Loading scores…"
+const cachedScoreData = ref(scoreData.value)
+watch(scoreData, (val) => {
+  if (val) cachedScoreData.value = val
+})
+
+const resolvedScoreData = computed(() => scoreData.value ?? cachedScoreData.value)
+const hasScores = computed(() => (resolvedScoreData.value?.scores?.length ?? 0) > 0)
+const isInitialLoad = computed(() => status.value === 'pending' && !cachedScoreData.value)
 
 function scoreColor(score: number, max: number): string {
   const pct = (score / max) * 100
@@ -75,35 +83,42 @@ async function runAnalysis() {
 <template>
   <div class="space-y-4">
     <!-- No scores yet -->
-    <div v-if="status !== 'pending' && !hasScores" class="text-center py-8">
-      <div class="flex size-14 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-950/40 mx-auto mb-3">
-        <Brain class="size-6 text-brand-600 dark:text-brand-400" />
+    <div v-if="!isInitialLoad && !hasScores" class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-900 p-4 shadow-sm shadow-surface-900/[0.03] dark:shadow-none">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="flex size-7 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/40">
+            <Brain class="size-3.5 text-brand-600 dark:text-brand-400" />
+          </div>
+          <div>
+            <p class="text-sm font-medium text-surface-600 dark:text-surface-300">No AI analysis yet</p>
+          </div>
+        </div>
+        <button
+          :disabled="isAnalyzing"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          @click="runAnalysis"
+        >
+          <Loader2 v-if="isAnalyzing" class="size-3.5 animate-spin" />
+          <Sparkles v-else class="size-3.5" />
+          {{ isAnalyzing ? 'Analyzing…' : 'Run Analysis' }}
+        </button>
       </div>
-      <p class="text-sm font-medium text-surface-600 dark:text-surface-300 mb-1">No AI analysis yet</p>
-      <p class="text-xs text-surface-400 mb-4">Run AI analysis to evaluate this candidate against scoring criteria.</p>
-      <button
-        :disabled="isAnalyzing"
-        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-        @click="runAnalysis"
-      >
-        <Loader2 v-if="isAnalyzing" class="size-4 animate-spin" />
-        <Sparkles v-else class="size-4" />
-        {{ isAnalyzing ? 'Analyzing…' : 'Run AI Analysis' }}
-      </button>
     </div>
 
-    <!-- Loading -->
-    <div v-else-if="status === 'pending'" class="text-center py-8 text-surface-400">
+    <!-- Loading (only on very first load with no cached data) -->
+    <div v-else-if="isInitialLoad" class="text-center py-8 text-surface-400">
       Loading scores…
     </div>
 
     <!-- Score breakdown -->
     <template v-else-if="hasScores">
       <!-- Composite score header -->
-      <div class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-950 p-4 shadow-sm">
+      <div class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-900 p-5 shadow-sm shadow-surface-900/[0.03] dark:shadow-none">
         <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <BarChart3 class="size-4 text-brand-600 dark:text-brand-400" />
+          <div class="flex items-center gap-2.5">
+            <div class="flex size-7 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/40">
+              <BarChart3 class="size-3.5 text-brand-600 dark:text-brand-400" />
+            </div>
             <h3 class="text-sm font-semibold text-surface-800 dark:text-surface-200">Composite Score</h3>
           </div>
           <button
@@ -118,26 +133,26 @@ async function runAnalysis() {
         <div class="flex items-baseline gap-2">
           <span
             class="text-3xl font-bold tabular-nums"
-            :class="scoreColor(scoreData!.latestRun?.compositeScore ?? 0, 100)"
+            :class="scoreColor(resolvedScoreData!.latestRun?.compositeScore ?? 0, 100)"
           >
-            {{ scoreData!.latestRun?.compositeScore ?? '—' }}
+            {{ resolvedScoreData!.latestRun?.compositeScore ?? '—' }}
           </span>
           <span class="text-sm text-surface-400">/ 100</span>
         </div>
 
         <!-- Run metadata -->
-        <div v-if="scoreData!.latestRun" class="mt-3 pt-3 border-t border-surface-100 dark:border-surface-800 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-surface-400">
-          <span>{{ scoreData!.latestRun.provider }} · {{ scoreData!.latestRun.model }}</span>
-          <span>{{ new Date(scoreData!.latestRun.createdAt).toLocaleString() }}</span>
+        <div v-if="resolvedScoreData!.latestRun" class="mt-3 pt-3 border-t border-surface-100 dark:border-surface-800 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-surface-400">
+          <span>{{ resolvedScoreData!.latestRun.provider }} · {{ resolvedScoreData!.latestRun.model }}</span>
+          <span>{{ new Date(resolvedScoreData!.latestRun.createdAt).toLocaleString() }}</span>
         </div>
       </div>
 
       <!-- Per-criterion breakdown -->
       <div class="space-y-2">
         <div
-          v-for="cs in scoreData!.scores"
+          v-for="cs in resolvedScoreData!.scores"
           :key="cs.criterionKey"
-          class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-950 shadow-sm transition-all"
+          class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-900 shadow-sm shadow-surface-900/[0.03] dark:shadow-none transition-all"
         >
           <!-- Criterion header -->
           <button

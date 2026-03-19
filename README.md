@@ -13,6 +13,7 @@
 
 
 <a href="https://openalternative.co/reqcore?utm_source=openalternative&utm_medium=badge&utm_campaign=embed&utm_content=tool-reqcore" target="_blank"><img src="https://openalternative.co/reqcore/badge.svg?theme=dark&width=200&height=50" width="200" height="50" alt="Reqcore badge" loading="lazy" /></a>
+<a href="https://railway.com/deploy/reqcore" target="_blank"><img src="public/deploy-on-railway.svg" width="183" height="40" alt="Deploy on Railway" /></a>
 
 
 </div>

@@ -12,6 +12,8 @@ const isDemo = computed(() => {
   const slug = config.public.demoOrgSlug
   return slug && activeOrg.value?.slug === slug
 })
+
+const isDemoAccount = computed(() => session.value?.user?.email === 'demo@reqcore.com')
 </script>
 
 <template>
@@ -19,6 +21,9 @@ const isDemo = computed(() => {
     <AppTopBar />
     <AppToasts />
     <PreviewUpsellModal v-if="isUpsellOpen" @close="closeUpsell" />
+    <ClientOnly>
+      <DemoUpsellBanner v-if="isDemoAccount" />
+    </ClientOnly>
     <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <!-- Demo mode banner -->
       <div
