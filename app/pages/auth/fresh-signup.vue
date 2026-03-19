@@ -7,23 +7,16 @@ const localePath = useLocalePath()
 
 onMounted(async () => {
   try {
-    // Server-side demo check — avoids client-side auth library quirks
-    const { hasSession, isDemo } = await $fetch('/api/auth/demo-check')
+    // Single server-side call: checks demo status AND signs out if needed.
+    // The server deletes the session from the DB and clears auth cookies
+    // via Set-Cookie headers — no client-side sign-out quirks.
+    const { action } = await $fetch('/api/auth/demo-fresh-signup', { method: 'POST' })
 
-    if (!hasSession) {
-      window.location.href = localePath('/auth/sign-up')
-      return
-    }
-
-    if (isDemo) {
-      // Sign out the demo session via the auth API directly
-      await $fetch('/api/auth/sign-out', { method: 'POST', body: {} })
-      // Hard navigate to clear all client-side state (Better Auth atoms, Nuxt caches)
-      window.location.href = localePath('/auth/sign-up')
+    if (action === 'dashboard') {
+      window.location.href = localePath('/dashboard')
     }
     else {
-      // Real user — go to dashboard
-      window.location.href = localePath('/dashboard')
+      window.location.href = localePath('/auth/sign-up')
     }
   }
   catch {
