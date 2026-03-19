@@ -1,8 +1,5 @@
-import { eq } from 'drizzle-orm'
-import * as schema from '../../database/schema'
-
 /**
- * Server-side check: is the current session a demo organization?
+ * Server-side check: is the current session a demo account?
  *
  * Used by the fresh-signup page to reliably detect demo sessions
  * before signing out and redirecting to sign-up.
@@ -14,18 +11,7 @@ export default defineEventHandler(async (event) => {
     return { hasSession: false, isDemo: false }
   }
 
-  const demoSlug = useRuntimeConfig().public.demoOrgSlug as string
-  const activeOrgId = (session.session as { activeOrganizationId?: string }).activeOrganizationId
+  const demoEmail = (useRuntimeConfig().public.liveDemoEmail as string) || 'demo@reqcore.com'
 
-  if (!demoSlug || !activeOrgId) {
-    return { hasSession: true, isDemo: false }
-  }
-
-  const [org] = await db
-    .select({ slug: schema.organization.slug })
-    .from(schema.organization)
-    .where(eq(schema.organization.id, activeOrgId))
-    .limit(1)
-
-  return { hasSession: true, isDemo: org?.slug === demoSlug }
+  return { hasSession: true, isDemo: session.user.email === demoEmail }
 })
