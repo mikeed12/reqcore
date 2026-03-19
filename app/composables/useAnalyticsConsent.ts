@@ -10,6 +10,8 @@
  *   const { hasConsented, acceptAnalytics, declineAnalytics } = useAnalyticsConsent()
  */
 
+import { flushPendingEvents, discardPendingEvents } from '~/composables/useTrack'
+
 /** Cookie name — shared across reqcore-web and applirank */
 export const CONSENT_COOKIE_NAME = 'reqcore-consent'
 
@@ -88,6 +90,10 @@ export function useAnalyticsConsent() {
   if (import.meta.client) {
     if (consentCookie.value === 'granted') {
       ph?.opt_in_capturing()
+      // Replay any events buffered (in sessionStorage) before this page load —
+      // e.g. signup_completed or org_created tracked during a flow that ended
+      // with a hard window.location.href navigation.
+      flushPendingEvents()
     }
     else {
       ph?.opt_out_capturing()

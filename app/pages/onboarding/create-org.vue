@@ -106,8 +106,10 @@ async function handleCreateOrg() {
   isLoading.value = true
 
   try {
-    await createOrg({ name: orgName.value.trim(), slug: slug.value.trim() })
+    // Track before createOrg() because it triggers window.location.href navigation
+    // which unloads the page — any code after await would never execute.
     track('org_created')
+    await createOrg({ name: orgName.value.trim(), slug: slug.value.trim() })
   }
   catch (err: any) {
     error.value = err?.message ?? 'Failed to create organization. The slug may already be taken.'

@@ -11,6 +11,7 @@
  * - Resets PostHog on sign-out to avoid cross-user data leakage
  */
 import { CONSENT_COOKIE_NAME } from '~/composables/useAnalyticsConsent'
+import { flushPendingEvents } from '~/composables/useTrack'
 
 // URL properties that may carry tokens or invitation IDs — always sanitized.
 // Includes referrer properties: if a user navigated from /jobs?invite_token=xxx,
@@ -72,6 +73,10 @@ export default defineNuxtPlugin({
     const storedConsent = consentCookie.value
     if (storedConsent === 'granted') {
       posthog.opt_in_capturing()
+      // Replay any events buffered in sessionStorage from a previous page load
+      // (e.g. signup_completed, org_created tracked during flows that ended
+      // with a hard window.location.href navigation).
+      flushPendingEvents()
     }
     else {
       // Ensure opt-out state is explicit for new visitors and users who declined.
