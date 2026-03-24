@@ -23,6 +23,16 @@ const localizedPublicRouteRules = Object.fromEntries(
     ])),
 )
 
+// Allow search-engine indexing for localized job board pages
+const localizedJobsRobotsRules = Object.fromEntries(
+  i18nLocales
+    .filter(locale => locale.code !== i18nDefaultLocale)
+    .flatMap(locale => ([
+      [`/${locale.code}/jobs`, { headers: { 'X-Robots-Tag': 'index, follow' } }],
+      [`/${locale.code}/jobs/**`, { headers: { 'X-Robots-Tag': 'index, follow' } }],
+    ])),
+)
+
 const isRailwayPreview =
   railwayEnvironmentName.startsWith('pr')
   || railwayEnvironmentName.includes('pr-')
@@ -169,8 +179,24 @@ export default defineNuxtConfig({
           'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
           'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
           'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://eu.i.posthog.com https://eu.posthog.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+          // Block indexing for all non-public routes by default;
+          // overridden below for /jobs/** which should be indexable.
+          'X-Robots-Tag': 'noindex, nofollow',
         },
       },
+      // Public job board pages — allow indexing
+      '/jobs/**': {
+        headers: {
+          'X-Robots-Tag': 'index, follow',
+        },
+      },
+      '/jobs': {
+        headers: {
+          'X-Robots-Tag': 'index, follow',
+        },
+      },
+      // Localized job board pages — allow indexing
+      ...localizedJobsRobotsRules,
       // Allow same-origin framing for inline PDF preview in the sidebar iframe
       '/api/documents/*/preview': {
         headers: {
