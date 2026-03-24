@@ -16,6 +16,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "npx tsx server/scripts/seed.ts",
+    "db:reseed": "npx tsx server/scripts/delete-demo-org.ts && npx tsx server/scripts/seed.ts",
     "test:e2e": "npx playwright test",
     "i18n:crowdin:upload": "crowdin upload sources",
     "i18n:crowdin:download": "crowdin download --all",
