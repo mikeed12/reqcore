@@ -57,6 +57,10 @@ export default defineEventHandler(async (event) => {
     candidate_id: created.id,
   })
 
+  logApiRequest(event, session, 'candidate.created', {
+    candidate_id: created.id,
+  })
+
   setResponseStatus(event, 201)
   return created
 })

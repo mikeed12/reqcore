@@ -71,6 +71,13 @@ export default defineEventHandler(async (event) => {
       from_status: current.status,
       to_status: body.status,
     })
+
+    logApiRequest(event, session, 'application.status_changed', {
+      application_id: id,
+      job_id: updated.jobId,
+      from_status: current.status,
+      to_status: body.status,
+    })
   }
 
   return updated

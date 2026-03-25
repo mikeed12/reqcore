@@ -466,6 +466,12 @@ export default defineEventHandler(async (event) => {
         console.error('[Reqcore] Failed to clean up orphaned S3 object:', storageKey, cleanupError)
       }
       console.error('[Reqcore] File upload failed during application:', uploadError)
+      logError('application.file_upload_failed', {
+        job_id: jobId,
+        application_id: newApplication?.id,
+        question_id: questionId,
+        error_message: uploadError instanceof Error ? uploadError.message : String(uploadError),
+      })
       // Continue processing — don't fail the entire application for a file upload error
     }
   }
@@ -529,6 +535,11 @@ export default defineEventHandler(async (event) => {
   if (existingJob.autoScoreOnApply && newApplication) {
     autoScoreApplication(newApplication.id, orgId).catch((err) => {
       console.error('[Reqcore] Auto-score failed for application', newApplication.id, err)
+      logError('application.auto_score_failed', {
+        application_id: newApplication.id,
+        job_id: jobId,
+        error_message: err instanceof Error ? err.message : String(err),
+      })
     })
   }
 
@@ -539,6 +550,17 @@ export default defineEventHandler(async (event) => {
     application_id: newApplication?.id,
     has_resume: !!resumeUpload,
     auto_score_enabled: !!existingJob.autoScoreOnApply,
+  })
+
+  logApiRequest(event, null, 'application.received', {
+    job_slug: slug,
+    job_id: existingJob.id,
+    application_id: newApplication?.id,
+    has_resume: !!resumeUpload,
+    question_count: validResponses.length,
+    file_count: uploadedFiles.size,
+    auto_score_enabled: !!existingJob.autoScoreOnApply,
+    is_returning_candidate: !!existingCandidate,
   })
 
   setResponseStatus(event, 201)
