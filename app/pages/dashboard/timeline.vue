@@ -4,7 +4,7 @@ import {
   Plus, Trash2, Edit3, UserPlus, UserMinus,
   ShieldCheck, Sparkles, MessageSquare, GitCommit,
   ChevronDown, ChevronRight, ArrowDown, Loader2,
-  AlertCircle, History, ArrowRight,
+  AlertCircle, History, ArrowRight, Search, X,
 } from 'lucide-vue-next'
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
@@ -33,6 +33,71 @@ const {
   loadInitial,
   loadMore,
 } = useTimeline()
+
+// ─────────────────────────────────────────────
+// Search
+// ─────────────────────────────────────────────
+
+const searchQuery = ref('')
+
+const filteredDayGroups = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return dayGroups.value
+
+  return dayGroups.value
+    .map((group) => {
+      // If date/label matches, show entire group
+      const dateMatches = group.label.toLowerCase().includes(q)
+        || group.date.includes(q)
+        || formatFullDate(group.date).toLowerCase().includes(q)
+
+      if (dateMatches) return group
+
+      // Filter sections to only include matching items
+      const filteredSections = group.sections
+        .map((section) => {
+          const matchLabel = section.label.toLowerCase().includes(q)
+          if (matchLabel) return section
+
+          const matchingDirectItems = section.directItems.filter(item => itemMatchesSearch(item, q))
+          const matchingCandidateGroups = section.candidateGroups
+            .map(cg => ({
+              ...cg,
+              items: cg.items.filter(item => itemMatchesSearch(item, q)),
+            }))
+            .filter(cg => cg.items.length > 0)
+
+          if (matchingDirectItems.length === 0 && matchingCandidateGroups.length === 0) return null
+
+          return {
+            ...section,
+            directItems: matchingDirectItems,
+            candidateGroups: matchingCandidateGroups,
+            items: [...matchingDirectItems, ...matchingCandidateGroups.flatMap(cg => cg.items)],
+          }
+        })
+        .filter((s): s is TimelineSection => s !== null)
+
+      if (filteredSections.length === 0) return null
+
+      return {
+        ...group,
+        sections: filteredSections,
+        items: filteredSections.flatMap(s => s.items),
+      }
+    })
+    .filter((g): g is TimelineDayGroup => g !== null)
+})
+
+const filteredEventCount = computed(() => filteredDayGroups.value.reduce((sum, g) => sum + g.items.length, 0))
+
+function itemMatchesSearch(item: TimelineItem, query: string): boolean {
+  return (item.actorName?.toLowerCase().includes(query) ?? false)
+    || (item.resourceName?.toLowerCase().includes(query) ?? false)
+    || (item.candidateName?.toLowerCase().includes(query) ?? false)
+    || (item.jobName?.toLowerCase().includes(query) ?? false)
+    || (item.actorEmail?.toLowerCase().includes(query) ?? false)
+}
 
 // Load data on mount
 onMounted(async () => {
@@ -113,7 +178,14 @@ interface ActionStyle {
   label: string
 }
 
-function getActionStyle(action: string, resourceType: string): ActionStyle {
+function getActionStyle(action: string, resourceType: string, metadata?: Record<string, unknown> | null): ActionStyle {
+  // For status_changed, derive colors from the target pipeline status
+  if (action === 'status_changed' && metadata) {
+    const toStatus = String(metadata.toStatus ?? metadata.to ?? '').toLowerCase()
+    const colors = getPipelineStatusColors(toStatus)
+    return { icon: ArrowRight, ...colors, label: 'Moved' }
+  }
+
   const map: Record<string, ActionStyle> = {
     created: {
       icon: Plus,
@@ -138,9 +210,9 @@ function getActionStyle(action: string, resourceType: string): ActionStyle {
     },
     status_changed: {
       icon: ArrowRight,
-      color: 'text-warning-600 dark:text-warning-400',
-      bg: 'bg-warning-50 dark:bg-warning-950/50',
-      ring: 'ring-warning-200 dark:ring-warning-800',
+      color: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-50 dark:bg-blue-950/50',
+      ring: 'ring-blue-200 dark:ring-blue-800',
       label: 'Status changed',
     },
     comment_added: {
@@ -230,6 +302,56 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
   if (to) return `→ ${to}`
   return null
 }
+
+function getPipelineStatusColors(status: string): { color: string, bg: string, ring: string } {
+  const map: Record<string, { color: string, bg: string, ring: string }> = {
+    new: { color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/50', ring: 'ring-blue-200 dark:ring-blue-800' },
+    screening: { color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-950/50', ring: 'ring-violet-200 dark:ring-violet-800' },
+    interview: { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/50', ring: 'ring-amber-200 dark:ring-amber-800' },
+    offer: { color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/50', ring: 'ring-teal-200 dark:ring-teal-800' },
+    hired: { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-950/50', ring: 'ring-green-200 dark:ring-green-800' },
+    rejected: { color: 'text-surface-500 dark:text-surface-400', bg: 'bg-surface-100 dark:bg-surface-800', ring: 'ring-surface-200 dark:ring-surface-700' },
+  }
+  return map[status] ?? { color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/50', ring: 'ring-blue-200 dark:ring-blue-800' }
+}
+
+function getStatusBadgeClasses(status: string): string {
+  const s = status.toLowerCase()
+  const map: Record<string, string> = {
+    new: 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300',
+    screening: 'bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-300',
+    interview: 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300',
+    offer: 'bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300',
+    hired: 'bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300',
+    rejected: 'bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300',
+  }
+  return map[s] ?? 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-300'
+}
+
+function getEventDescription(item: TimelineItem): string {
+  const typeLabels: Record<string, string> = {
+    job: 'Job',
+    candidate: 'Candidate',
+    application: 'Application',
+    interview: 'Interview',
+    member: 'Team member',
+  }
+  const type = typeLabels[item.resourceType] ?? item.resourceType
+
+  switch (item.action) {
+    case 'created': return `${type} created`
+    case 'updated': return `${type} updated`
+    case 'deleted': return `${type} deleted`
+    case 'status_changed': return `${type} moved`
+    case 'comment_added': return `Comment on ${type.toLowerCase()}`
+    case 'member_invited': return 'Member invited'
+    case 'member_removed': return 'Member removed'
+    case 'member_role_changed': return 'Role changed'
+    case 'scored': return `${type} scored by AI`
+    case 'scheduled': return `${type} scheduled`
+    default: return `${type} ${item.action.replace(/_/g, ' ')}`
+  }
+}
 </script>
 
 <template>
@@ -245,7 +367,7 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
             v-if="totalEvents > 0 && !isLoading"
             class="text-xs text-surface-400 dark:text-surface-500 tabular-nums"
           >
-            {{ totalEvents.toLocaleString() }} events
+            <template v-if="searchQuery.trim()">{{ filteredEventCount }} of </template>{{ totalEvents.toLocaleString() }} events
           </span>
         </div>
 
@@ -274,6 +396,26 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
           <component :is="f.icon" class="size-3" />
           {{ f.label }}
         </button>
+      </div>
+
+      <!-- Search bar -->
+      <div class="mt-3 relative">
+        <div class="relative">
+          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-surface-400 dark:text-surface-500 pointer-events-none" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by name, date, or keyword…"
+            class="w-full rounded-lg border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 pl-8 pr-8 py-1.5 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-400 dark:focus:border-brand-600 transition-colors"
+          />
+          <button
+            v-if="searchQuery"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 dark:text-surface-500 dark:hover:text-surface-300 cursor-pointer"
+            @click="searchQuery = ''"
+          >
+            <X class="size-3.5" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -332,13 +474,33 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
       </div>
     </div>
 
+    <!-- ─── No search results ─── -->
+    <div
+      v-else-if="filteredDayGroups.length === 0 && searchQuery.trim()"
+      class="flex flex-col items-center justify-center py-16"
+    >
+      <Search class="size-8 text-surface-300 dark:text-surface-600 mb-3" />
+      <p class="text-sm font-medium text-surface-500 dark:text-surface-400">
+        No results for “{{ searchQuery.trim() }}”
+      </p>
+      <p class="text-xs text-surface-400 dark:text-surface-500 mt-1">
+        Try searching by name, date, or keyword
+      </p>
+      <button
+        class="mt-3 text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline cursor-pointer"
+        @click="searchQuery = ''"
+      >
+        Clear search
+      </button>
+    </div>
+
     <!-- ─── Timeline ─── -->
     <div v-else class="relative">
       <!-- Vertical timeline line -->
       <div class="absolute left-3.5 top-0 bottom-0 w-px bg-surface-200 dark:bg-surface-800" />
 
       <div class="space-y-6">
-        <div v-for="group in dayGroups" :key="group.date">
+        <div v-for="group in filteredDayGroups" :key="group.date">
           <!-- Day header -->
           <div
             :ref="group.isToday ? 'todayMarker' : undefined"
@@ -433,13 +595,17 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
                     class="group relative flex items-center gap-2 py-2 px-3 transition-colors duration-150 no-underline"
                     :class="[item.resourceUrl ? 'cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800/60' : '']"
                   >
-                    <div class="flex items-center justify-center size-6 rounded shrink-0" :class="getActionStyle(item.action, item.resourceType).bg">
-                      <component :is="getActionStyle(item.action, item.resourceType).icon" class="size-3" :class="getActionStyle(item.action, item.resourceType).color" />
+                    <div class="flex items-center justify-center size-6 rounded shrink-0" :class="getActionStyle(item.action, item.resourceType, item.metadata).bg">
+                      <component :is="getActionStyle(item.action, item.resourceType, item.metadata).icon" class="size-3" :class="getActionStyle(item.action, item.resourceType, item.metadata).color" />
                     </div>
                     <div class="flex-1 min-w-0 flex items-center gap-1.5">
-                      <span class="text-[13px] font-medium text-surface-900 dark:text-surface-100 shrink-0">{{ getActionStyle(item.action, item.resourceType).label }}</span>
+                      <span class="text-[13px] font-medium text-surface-900 dark:text-surface-100 shrink-0">{{ getEventDescription(item) }}</span>
                       <span v-if="item.resourceName" class="text-[13px] text-surface-600 dark:text-surface-300 truncate group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">&mdash; {{ item.resourceName }}</span>
-                      <span v-if="item.action === 'status_changed' && getStatusChangeDescription(item.metadata)" class="text-[11px] text-warning-600 dark:text-warning-400 shrink-0">{{ getStatusChangeDescription(item.metadata) }}</span>
+                      <template v-if="item.action === 'status_changed' && item.metadata">
+                        <span v-if="item.metadata.fromStatus || item.metadata.from" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getStatusBadgeClasses(String(item.metadata.fromStatus ?? item.metadata.from))">{{ item.metadata.fromStatus ?? item.metadata.from }}</span>
+                        <ArrowRight class="size-2.5 text-surface-400 dark:text-surface-500 shrink-0" />
+                        <span v-if="item.metadata.toStatus || item.metadata.to" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getStatusBadgeClasses(String(item.metadata.toStatus ?? item.metadata.to))">{{ item.metadata.toStatus ?? item.metadata.to }}</span>
+                      </template>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                       <div v-if="item.actorName" class="flex items-center gap-1">
@@ -481,13 +647,17 @@ function getStatusChangeDescription(metadata: Record<string, unknown> | null): s
                         item.isUpcoming ? 'bg-accent-50/50 dark:bg-accent-950/20' : '',
                       ]"
                     >
-                      <div class="flex items-center justify-center size-5 rounded shrink-0" :class="getActionStyle(item.action, item.resourceType).bg">
-                        <component :is="getActionStyle(item.action, item.resourceType).icon" class="size-2.5" :class="getActionStyle(item.action, item.resourceType).color" />
+                      <div class="flex items-center justify-center size-5 rounded shrink-0" :class="getActionStyle(item.action, item.resourceType, item.metadata).bg">
+                        <component :is="getActionStyle(item.action, item.resourceType, item.metadata).icon" class="size-2.5" :class="getActionStyle(item.action, item.resourceType, item.metadata).color" />
                       </div>
                       <div class="flex-1 min-w-0 flex items-center gap-1.5">
-                        <span class="text-[12px] font-medium shrink-0" :class="getActionStyle(item.action, item.resourceType).color">{{ getActionStyle(item.action, item.resourceType).label }}</span>
+                        <span class="text-[12px] font-medium shrink-0" :class="getActionStyle(item.action, item.resourceType, item.metadata).color">{{ getEventDescription(item) }}</span>
                         <span v-if="item.resourceName" class="text-[12px] text-surface-600 dark:text-surface-300 truncate group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">{{ item.resourceName }}</span>
-                        <span v-if="item.action === 'status_changed' && getStatusChangeDescription(item.metadata)" class="text-[11px] text-warning-600 dark:text-warning-400 shrink-0">{{ getStatusChangeDescription(item.metadata) }}</span>
+                        <template v-if="item.action === 'status_changed' && item.metadata">
+                          <span v-if="item.metadata.fromStatus || item.metadata.from" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getStatusBadgeClasses(String(item.metadata.fromStatus ?? item.metadata.from))">{{ item.metadata.fromStatus ?? item.metadata.from }}</span>
+                          <ArrowRight class="size-2.5 text-surface-400 dark:text-surface-500 shrink-0" />
+                          <span v-if="item.metadata.toStatus || item.metadata.to" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getStatusBadgeClasses(String(item.metadata.toStatus ?? item.metadata.to))">{{ item.metadata.toStatus ?? item.metadata.to }}</span>
+                        </template>
                         <span v-if="item.isUpcoming" class="text-[11px] font-medium text-accent-600 dark:text-accent-400 shrink-0">Upcoming</span>
                       </div>
                       <div class="flex items-center gap-2 shrink-0">

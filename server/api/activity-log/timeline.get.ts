@@ -216,8 +216,9 @@ export default defineEventHandler(async (event) => {
   })
 
   // Fetch upcoming interviews as future "planned" events
+  // Only include when no filter is active, or when filtering specifically for interviews
   let upcoming: Array<Record<string, unknown>> = []
-  if (!query.before && !query.after) {
+  if (!query.before && !query.after && (!query.resourceType || query.resourceType === 'interview')) {
     const upcomingInterviews = await db
       .select({
         id: interview.id,

@@ -378,11 +378,11 @@ useSeoMeta({
 // ─────────────────────────────────────────────
 
 const statusBadgeClasses: Record<string, string> = {
-  new: 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400',
-  screening: 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-400',
-  interview: 'bg-warning-50 text-warning-700 dark:bg-warning-950 dark:text-warning-400',
-  offer: 'bg-success-50 text-success-700 dark:bg-success-950 dark:text-success-400',
-  hired: 'bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-300',
+  new: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
+  screening: 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400',
+  interview: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
+  offer: 'bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-400',
+  hired: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400',
   rejected: 'bg-surface-100 text-surface-500 dark:bg-surface-800 dark:text-surface-400',
 }
 
@@ -397,10 +397,10 @@ const transitionLabels: Record<string, string> = {
 
 const transitionClasses: Record<string, string> = {
   new: 'border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800',
-  screening: 'bg-info-600 text-white hover:bg-info-700',
-  interview: 'bg-warning-600 text-white hover:bg-warning-700',
-  offer: 'bg-success-600 text-white hover:bg-success-700',
-  hired: 'bg-success-700 text-white hover:bg-success-800',
+  screening: 'bg-violet-600 text-white hover:bg-violet-700',
+  interview: 'bg-amber-600 text-white hover:bg-amber-700',
+  offer: 'bg-teal-600 text-white hover:bg-teal-700',
+  hired: 'bg-green-700 text-white hover:bg-green-800',
   rejected: 'bg-danger-600 text-white hover:bg-danger-700',
 }
 
@@ -1288,11 +1288,11 @@ function closeDocPreview() {
             @click="setFocusStatus(status)"
           >
             <span class="pipeline-status-dot size-2 rounded-full" :class="{
-              'bg-brand-500 dark:bg-brand-400': status === 'new',
-              'bg-info-500 dark:bg-info-400': status === 'screening',
-              'bg-warning-500 dark:bg-warning-400': status === 'interview',
-              'bg-success-500 dark:bg-success-400': status === 'offer',
-              'bg-success-600 dark:bg-success-300': status === 'hired',
+              'bg-blue-500 dark:bg-blue-400': status === 'new',
+              'bg-violet-500 dark:bg-violet-400': status === 'screening',
+              'bg-amber-500 dark:bg-amber-400': status === 'interview',
+              'bg-teal-500 dark:bg-teal-400': status === 'offer',
+              'bg-green-600 dark:bg-green-300': status === 'hired',
               'bg-surface-400 dark:bg-surface-500': status === 'rejected',
             }" />
             {{ formatStatusLabel(status) }}
@@ -1603,11 +1603,11 @@ function closeDocPreview() {
                       <span
                         class="inline-flex shrink-0 items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset"
                         :class="{
-                          'bg-brand-50 text-brand-700 ring-brand-200 dark:bg-brand-950/50 dark:text-brand-300 dark:ring-brand-800': currentSummary.status === 'new',
-                          'bg-info-50 text-info-700 ring-info-200 dark:bg-info-950/50 dark:text-info-300 dark:ring-info-800': currentSummary.status === 'screening',
-                          'bg-warning-50 text-warning-700 ring-warning-200 dark:bg-warning-950/50 dark:text-warning-300 dark:ring-warning-800': currentSummary.status === 'interview',
-                          'bg-success-50 text-success-700 ring-success-200 dark:bg-success-950/50 dark:text-success-300 dark:ring-success-800': currentSummary.status === 'offer',
-                          'bg-success-100 text-success-800 ring-success-300 dark:bg-success-900/50 dark:text-success-200 dark:ring-success-700': currentSummary.status === 'hired',
+                          'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:ring-blue-800': currentSummary.status === 'new',
+                          'bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:ring-violet-800': currentSummary.status === 'screening',
+                          'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:ring-amber-800': currentSummary.status === 'interview',
+                          'bg-teal-50 text-teal-700 ring-teal-200 dark:bg-teal-950/50 dark:text-teal-400 dark:ring-teal-800': currentSummary.status === 'offer',
+                          'bg-green-50 text-green-700 ring-green-200 dark:bg-green-950/50 dark:text-green-400 dark:ring-green-800': currentSummary.status === 'hired',
                           'bg-surface-100 text-surface-500 ring-surface-200 dark:bg-surface-800/50 dark:text-surface-400 dark:ring-surface-700': currentSummary.status === 'rejected',
                         }"
                       >
@@ -1695,9 +1695,9 @@ function closeDocPreview() {
             </div>
 
             <!-- Detail tabs -->
-            <div ref="overviewDropdownRef" class="relative border-b border-surface-200/80 bg-white px-4 sm:px-6 dark:border-surface-800/60 dark:bg-surface-900">
-              <div class="mx-auto max-w-4xl flex gap-1 -mb-px overflow-x-auto scrollbar-none whitespace-nowrap">
-                <div>
+            <div class="border-b border-surface-200/80 bg-white px-4 sm:px-6 dark:border-surface-800/60 dark:bg-surface-900">
+              <div class="mx-auto max-w-4xl flex gap-1 -mb-px scrollbar-none whitespace-nowrap" :class="showOverviewDropdown ? '' : 'overflow-x-auto'">
+                <div ref="overviewDropdownRef" class="relative">
                   <div class="flex items-center border-b-2 transition-all duration-150" :class="detailTab === 'overview'
                     ? 'border-brand-600 dark:border-brand-400'
                     : 'border-transparent'">
@@ -1718,6 +1718,39 @@ function closeDocPreview() {
                       <ChevronDown class="size-3.5 transition-transform duration-150" :class="showOverviewDropdown ? 'rotate-180' : ''" />
                     </button>
                   </div>
+
+                  <!-- Overview sections dropdown -->
+                  <Transition
+                    enter-active-class="transition duration-150 ease-out"
+                    enter-from-class="opacity-0 scale-95 -translate-y-1"
+                    enter-to-class="opacity-100 scale-100 translate-y-0"
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100 scale-100 translate-y-0"
+                    leave-to-class="opacity-0 scale-95 -translate-y-1"
+                  >
+                    <div
+                      v-if="showOverviewDropdown"
+                      class="absolute left-0 top-full z-50 mt-1 w-44 rounded-xl border border-surface-200 dark:border-surface-700/80 bg-white dark:bg-surface-900 shadow-xl shadow-surface-900/5 dark:shadow-black/20 py-1.5 origin-top-left"
+                    >
+                      <span class="block px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500">Sections</span>
+                      <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
+                        <input v-model="overviewSections.aiAnalysis" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
+                        AI Analysis
+                      </label>
+                      <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
+                        <input v-model="overviewSections.interviews" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
+                        Interviews
+                      </label>
+                      <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
+                        <input v-model="overviewSections.documents" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
+                        Documents
+                      </label>
+                      <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
+                        <input v-model="overviewSections.responses" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
+                        Responses
+                      </label>
+                    </div>
+                  </Transition>
                 </div>
                 <button
                   class="cursor-pointer px-3.5 py-2.5 text-sm font-medium transition-all duration-150 border-b-2 -mb-px"
@@ -1774,39 +1807,6 @@ function closeDocPreview() {
                   </span>
                 </button>
               </div>
-
-              <!-- Overview sections dropdown (outside overflow container to avoid clipping) -->
-              <Transition
-                enter-active-class="transition duration-150 ease-out"
-                enter-from-class="opacity-0 scale-95 -translate-y-1"
-                enter-to-class="opacity-100 scale-100 translate-y-0"
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="opacity-100 scale-100 translate-y-0"
-                leave-to-class="opacity-0 scale-95 -translate-y-1"
-              >
-                <div
-                  v-if="showOverviewDropdown"
-                  class="absolute left-4 sm:left-6 top-full z-50 mt-1 w-44 rounded-xl border border-surface-200 dark:border-surface-700/80 bg-white dark:bg-surface-900 shadow-xl shadow-surface-900/5 dark:shadow-black/20 py-1.5 origin-top-left"
-                >
-                  <span class="block px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500">Sections</span>
-                  <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
-                    <input v-model="overviewSections.aiAnalysis" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
-                    AI Analysis
-                  </label>
-                  <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
-                    <input v-model="overviewSections.interviews" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
-                    Interviews
-                  </label>
-                  <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
-                    <input v-model="overviewSections.documents" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
-                    Documents
-                  </label>
-                  <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
-                    <input v-model="overviewSections.responses" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
-                    Responses
-                  </label>
-                </div>
-              </Transition>
             </div>
 
             <!-- Detail content -->

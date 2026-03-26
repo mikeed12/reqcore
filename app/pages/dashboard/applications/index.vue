@@ -173,20 +173,20 @@ function scoreClass(score: number) {
 }
 
 const statusBadgeClasses: Record<string, string> = {
-  new: 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400',
-  screening: 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-400',
-  interview: 'bg-warning-50 text-warning-700 dark:bg-warning-950 dark:text-warning-400',
-  offer: 'bg-success-50 text-success-700 dark:bg-success-950 dark:text-success-400',
-  hired: 'bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-300',
+  new: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
+  screening: 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400',
+  interview: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
+  offer: 'bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-400',
+  hired: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400',
   rejected: 'bg-surface-100 text-surface-500 dark:bg-surface-800 dark:text-surface-400',
 }
 
 const statusDotClasses: Record<string, string> = {
-  new: 'bg-brand-500',
-  screening: 'bg-info-500',
-  interview: 'bg-warning-500',
-  offer: 'bg-success-500',
-  hired: 'bg-success-600',
+  new: 'bg-blue-500',
+  screening: 'bg-violet-500',
+  interview: 'bg-amber-500',
+  offer: 'bg-teal-500',
+  hired: 'bg-green-600',
   rejected: 'bg-surface-400 dark:bg-surface-500',
 }
 
