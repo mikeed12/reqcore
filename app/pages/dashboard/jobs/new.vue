@@ -62,13 +62,12 @@ type DraftQuestion = {
 }
 
 // Wizard state
-const currentStep = ref<1 | 2 | 3 | 4 | 5>(1)
+const currentStep = ref<1 | 2 | 3 | 4>(1)
 const steps = [
   { id: 1, title: 'Job details', description: 'Tell applicants about this role.' },
   { id: 2, title: 'Application form', description: 'Design the application form.' },
-  { id: 3, title: 'Scoring criteria', description: 'Define how AI evaluates candidates.' },
-  { id: 4, title: 'Find candidates', description: 'Post on job boards, engage recruiters.' },
-  { id: 5, title: 'Publish & share', description: 'Go live and share with candidates.' },
+  { id: 3, title: 'AI scoring criteria', description: 'Define how AI evaluates candidates.' },
+  { id: 4, title: 'Publish & share', description: 'Go live and share with candidates.' },
 ]
 
 // Step 1: Job details (API-supported fields)
@@ -77,6 +76,8 @@ const form = ref({
   description: '',
   location: '',
   type: 'full_time' as 'full_time' | 'part_time' | 'contract' | 'internship',
+  experienceLevel: 'mid' as 'junior' | 'mid' | 'senior' | 'lead',
+  remoteStatus: undefined as 'remote' | 'hybrid' | 'onsite' | undefined,
 })
 
 // Step 2: Application form (client-only for now)
@@ -86,15 +87,7 @@ const applicationForm = ref({
   questions: [] as DraftQuestion[],
 })
 
-// Step 3: Find candidates (client-only for now)
-const findCandidates = ref({
-  experienceLevel: 'mid' as 'junior' | 'mid' | 'senior' | 'lead',
-  skills: [] as string[],
-  enableSourcing: true,
-  locationPreference: 'anywhere' as 'onsite' | 'hybrid' | 'remote' | 'anywhere',
-})
-
-// Step 3: Scoring criteria
+// Step 3: AI scoring criteria
 type ScoringCriterionDraft = {
   key: string
   name: string
@@ -261,6 +254,59 @@ const linkCopied = ref(false)
 const questionActionError = ref<string | null>(null)
 const nextQuestionId = ref(1)
 
+// Check if AI provider is configured
+const { data: aiConfigData } = useFetch('/api/ai-config', { key: 'ai-config-check' })
+const isAiConfigured = computed(() => {
+  return aiConfigData.value && aiConfigData.value.provider && aiConfigData.value.hasApiKey
+})
+
+// Auto-save to localStorage
+const AUTO_SAVE_KEY = 'reqcore-job-draft'
+
+function saveFormToStorage() {
+  if (!import.meta.client) return
+  try {
+    const data = {
+      form: form.value,
+      applicationForm: applicationForm.value,
+      scoringCriteria: scoringCriteria.value,
+      scoringMode: scoringMode.value,
+      autoScoreOnApply: autoScoreOnApply.value,
+      currentStep: currentStep.value,
+    }
+    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(data))
+  } catch { /* storage full or unavailable */ }
+}
+
+function restoreFormFromStorage() {
+  if (!import.meta.client) return
+  try {
+    const raw = localStorage.getItem(AUTO_SAVE_KEY)
+    if (!raw) return
+    const data = JSON.parse(raw)
+    if (data.form) Object.assign(form.value, data.form)
+    if (data.applicationForm) Object.assign(applicationForm.value, data.applicationForm)
+    if (data.scoringCriteria) scoringCriteria.value = data.scoringCriteria
+    if (data.scoringMode) scoringMode.value = data.scoringMode
+    if (data.autoScoreOnApply != null) autoScoreOnApply.value = data.autoScoreOnApply
+    if (data.currentStep) currentStep.value = data.currentStep
+  } catch { /* corrupted data, ignore */ }
+}
+
+function clearFormStorage() {
+  if (!import.meta.client) return
+  try { localStorage.removeItem(AUTO_SAVE_KEY) } catch { /* ignore */ }
+}
+
+onMounted(() => {
+  restoreFormFromStorage()
+})
+
+// Auto-save when step changes or form data changes
+watch([currentStep, form, applicationForm, scoringCriteria, scoringMode, autoScoreOnApply], () => {
+  saveFormToStorage()
+}, { deep: true })
+
 // Step 4: Publish & Share
 const publishChoice = ref<'publish' | 'draft'>('publish')
 const isPublished = ref(false)
@@ -299,8 +345,15 @@ const canGoNext = computed(() => {
   return true
 })
 
+function goToStep(step: 1 | 2 | 3 | 4) {
+  if (step === currentStep.value) return
+  // Validate step 1 before leaving it
+  if (currentStep.value === 1 && step > 1 && !validateStep1()) return
+  currentStep.value = step
+}
+
 function nextStep() {
-  if (currentStep.value < 5) {
+  if (currentStep.value < 4) {
     if (currentStep.value === 1 && !validateStep1()) return
     currentStep.value++
   }
@@ -403,26 +456,6 @@ async function copyApplicationLink() {
   }
 }
 
-function addSkillFromInput(e: Event) {
-  const input = e.target as HTMLInputElement
-  const value = input.value.trim()
-  if (!value) return
-  value
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .forEach((skill) => {
-      if (!findCandidates.value.skills.includes(skill)) {
-        findCandidates.value.skills.push(skill)
-      }
-    })
-  input.value = ''
-}
-
-function removeSkill(index: number) {
-  findCandidates.value.skills.splice(index, 1)
-}
-
 async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
   // Ensure step 1 is valid before submit
   if (!validateStep1()) {
@@ -437,6 +470,7 @@ async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
       description: form.value.description || undefined,
       location: form.value.location || undefined,
       type: form.value.type,
+      remoteStatus: form.value.remoteStatus || undefined,
       requireResume: applicationForm.value.requireResume,
       requireCoverLetter: applicationForm.value.requireCoverLetter,
       autoScoreOnApply: autoScoreOnApply.value,
@@ -514,6 +548,7 @@ async function handleSubmit(mode: 'publish' | 'draft' = publishChoice.value) {
       // Saved as draft — go to jobs list
       await navigateTo(localePath('/dashboard/jobs'))
     }
+    clearFormStorage()
   } catch (err: any) {
     const statusMessage = err?.data?.statusMessage ?? 'Something went wrong while creating the job.'
     toast.error('Failed to create job', {
@@ -580,7 +615,7 @@ const questionTypeLabels: Record<QuestionType, string> = {
           Save draft
         </button>
         <button
-          v-if="currentStep < 5"
+          v-if="currentStep < 4"
           type="button"
           :disabled="!canGoNext"
           @click="nextStep"
@@ -597,9 +632,8 @@ const questionTypeLabels: Record<QuestionType, string> = {
         <li
           v-for="(step, idx) in steps"
           :key="step.id"
-          class="flex items-center flex-1 min-w-0"
-          :class="{ 'cursor-pointer': currentStep > step.id }"
-          @click="currentStep > step.id ? (currentStep = step.id as typeof currentStep) : undefined"
+          class="flex items-center flex-1 min-w-0 cursor-pointer"
+          @click="goToStep(step.id as typeof currentStep)"
         >
           <div class="flex items-center gap-2 min-w-0">
             <div
@@ -694,6 +728,39 @@ const questionTypeLabels: Record<QuestionType, string> = {
                 </div>
               </div>
 
+              <!-- Section: Experience & Remote -->
+              <div class="space-y-6">
+                <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-6 pb-2 border-b border-surface-100 dark:border-surface-800">Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label for="experienceLevel" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Experience level</label>
+                    <select
+                      id="experienceLevel"
+                      v-model="form.experienceLevel"
+                      class="w-full rounded-lg border px-3 py-2.5 text-sm bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 border-surface-300 dark:border-surface-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                    >
+                      <option value="junior">Junior</option>
+                      <option value="mid">Mid-level</option>
+                      <option value="senior">Senior</option>
+                      <option value="lead">Lead</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="remoteStatus" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Remote status</label>
+                    <select
+                      id="remoteStatus"
+                      v-model="form.remoteStatus"
+                      class="w-full rounded-lg border px-3 py-2.5 text-sm bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 border-surface-300 dark:border-surface-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                    >
+                      <option :value="undefined">Not specified</option>
+                      <option value="remote">Remote</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="onsite">On-site</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <!-- Section: Description -->
               <div class="space-y-6">
                 <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-6 pb-2 border-b border-surface-100 dark:border-surface-800">Description</h2>
@@ -715,32 +782,6 @@ const questionTypeLabels: Record<QuestionType, string> = {
 
             <!-- Step 2: Application form -->
             <section v-else-if="currentStep === 2" class="space-y-8">
-              <div class="rounded-lg border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 p-5">
-                <div class="flex items-center gap-2 mb-2">
-                  <Link2 class="size-4 text-brand-600 dark:text-brand-400" />
-                  <h2 class="text-sm font-semibold text-brand-700 dark:text-brand-300">Application Link</h2>
-                </div>
-                <p class="text-xs text-surface-600 dark:text-surface-400 mb-3">
-                  This preview link will be generated when the job is created.
-                </p>
-                <div class="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readonly
-                    :value="applicationLink"
-                    class="flex-1 rounded-lg border border-brand-200 dark:border-brand-800 bg-white dark:bg-surface-900 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 select-all"
-                  />
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
-                    @click="copyApplicationLink"
-                  >
-                    <ClipboardCopy class="size-3.5" />
-                    {{ linkCopied ? 'Copied!' : 'Copy' }}
-                  </button>
-                </div>
-              </div>
-
               <div>
                 <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-6 pb-2 border-b border-surface-100 dark:border-surface-800">Application requirements</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -898,7 +939,7 @@ const questionTypeLabels: Record<QuestionType, string> = {
               </div>
             </section>
 
-            <!-- Step 3: Scoring criteria -->
+            <!-- Step 3: AI scoring criteria -->
             <section v-else-if="currentStep === 3" class="space-y-8">
               <div>
                 <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-2 pb-2 border-b border-surface-100 dark:border-surface-800">
@@ -907,6 +948,26 @@ const questionTypeLabels: Record<QuestionType, string> = {
                 <p class="text-sm text-surface-500 dark:text-surface-400 mb-6">
                   Define the criteria that AI will use to evaluate and rank candidates. Adjust weights to prioritize what matters most.
                 </p>
+              </div>
+
+              <!-- AI not configured warning -->
+              <div v-if="!isAiConfigured" class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-5">
+                <div class="flex items-start gap-3">
+                  <Sparkles class="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">AI provider not configured</p>
+                    <p class="text-xs text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
+                      To use AI-powered scoring, you need to configure an AI provider first. You can still define criteria manually and set up AI later.
+                    </p>
+                    <NuxtLink
+                      :to="$localePath('/dashboard/settings/ai')"
+                      class="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 underline underline-offset-2"
+                    >
+                      <ExternalLink class="size-3" />
+                      Go to AI settings
+                    </NuxtLink>
+                  </div>
+                </div>
               </div>
 
               <!-- Mode selection cards -->
@@ -934,7 +995,8 @@ const questionTypeLabels: Record<QuestionType, string> = {
                 <!-- AI from job description -->
                 <button
                   type="button"
-                  class="relative flex flex-col items-start gap-3 p-5 rounded-xl border-2 text-left transition-all hover:shadow-md"
+                  :disabled="!isAiConfigured"
+                  class="relative flex flex-col items-start gap-3 p-5 rounded-xl border-2 text-left transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   :class="scoringMode === 'ai'
                     ? 'border-brand-500 dark:border-brand-400 bg-brand-50/70 dark:bg-brand-950/30 ring-2 ring-brand-200 dark:ring-brand-900'
                     : 'border-surface-200 dark:border-surface-800 hover:border-surface-300 dark:hover:border-surface-700'"
@@ -947,6 +1009,9 @@ const questionTypeLabels: Record<QuestionType, string> = {
                     <span class="block text-sm font-semibold text-surface-900 dark:text-surface-100">Generate from job description</span>
                     <span class="text-xs text-surface-500 dark:text-surface-400 mt-1 block leading-relaxed">
                       AI analyzes your job description and creates tailored criteria.
+                    </span>
+                    <span v-if="!isAiConfigured" class="text-[10px] text-amber-600 dark:text-amber-400 mt-1 block">
+                      Requires AI provider setup
                     </span>
                   </div>
                   <span v-if="isGeneratingCriteria" class="absolute top-3 right-3">
@@ -1158,7 +1223,8 @@ const questionTypeLabels: Record<QuestionType, string> = {
                   <input
                     v-model="autoScoreOnApply"
                     type="checkbox"
-                    class="mt-0.5 size-4 rounded border-surface-300 dark:border-surface-600 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                    :disabled="!isAiConfigured"
+                    class="mt-0.5 size-4 rounded border-surface-300 dark:border-surface-600 text-brand-600 focus:ring-brand-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <div>
                     <span class="block text-sm font-semibold text-surface-900 dark:text-surface-100">
@@ -1166,6 +1232,9 @@ const questionTypeLabels: Record<QuestionType, string> = {
                     </span>
                     <span class="text-xs text-surface-500 dark:text-surface-400 mt-0.5 block leading-relaxed">
                       When a candidate applies, AI will automatically analyze their resume against these criteria and assign a score. Requires an AI provider configured in settings plus a resume upload.
+                    </span>
+                    <span v-if="!isAiConfigured" class="text-xs text-amber-600 dark:text-amber-400 mt-1 block">
+                      <NuxtLink :to="$localePath('/dashboard/settings/ai')" class="underline underline-offset-2 hover:text-amber-800 dark:hover:text-amber-200">Configure an AI provider</NuxtLink> to enable automatic scoring.
                     </span>
                   </div>
                 </label>
@@ -1177,83 +1246,8 @@ const questionTypeLabels: Record<QuestionType, string> = {
               </div>
             </section>
 
-            <!-- Step 4: Find candidates -->
-            <section v-else-if="currentStep === 4" class="space-y-8">
-              <div>
-                <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-6 pb-2 border-b border-surface-100 dark:border-surface-800">Targeting details</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Experience level</label>
-                    <select v-model="findCandidates.experienceLevel" class="w-full rounded-lg border px-3 py-2.5 text-sm bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 border-surface-300 dark:border-surface-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                      <option value="junior">Junior</option>
-                      <option value="mid">Mid</option>
-                      <option value="senior">Senior</option>
-                      <option value="lead">Lead</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Location preference</label>
-                    <select v-model="findCandidates.locationPreference" class="w-full rounded-lg border px-3 py-2.5 text-sm bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 border-surface-300 dark:border-surface-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                      <option value="anywhere">Anywhere</option>
-                      <option value="remote">Remote</option>
-                      <option value="hybrid">Hybrid</option>
-                      <option value="onsite">Onsite</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-6 pb-2 border-b border-surface-100 dark:border-surface-800">Key skills</h2>
-                <div class="rounded-lg border border-surface-300 dark:border-surface-700 p-3 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-all">
-                  <div class="flex flex-wrap gap-2 mb-2">
-                    <span
-                      v-for="(skill, idx) in findCandidates.skills"
-                      :key="skill + idx"
-                      class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 text-brand-800 dark:bg-brand-950 dark:text-brand-200 border border-brand-100 dark:border-brand-900 px-2.5 py-1 text-xs font-medium"
-                    >
-                      {{ skill }}
-                      <button type="button" class="text-brand-400 hover:text-brand-600 dark:hover:text-brand-100 transition-colors" @click="removeSkill(idx)">×</button>
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Type a skill and press Enter..."
-                    class="w-full border-0 focus:ring-0 bg-transparent text-sm placeholder:text-surface-400"
-                    @keydown.enter.prevent="addSkillFromInput"
-                    @blur="addSkillFromInput"
-                  />
-                </div>
-                <p class="mt-2 text-xs text-surface-500">Examples: Vue, TypeScript, Tailwind, GraphQL, AWS</p>
-              </div>
-
-              <div class="pt-4">
-                <button
-                  type="button"
-                  class="relative w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-colors"
-                  :class="findCandidates.enableSourcing
-                    ? 'border-brand-300 dark:border-brand-700 bg-brand-50/70 dark:bg-brand-950/30'
-                    : 'border-surface-200 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50'"
-                  :aria-pressed="findCandidates.enableSourcing"
-                  @click="findCandidates.enableSourcing = !findCandidates.enableSourcing"
-                >
-                  <span
-                    v-if="findCandidates.enableSourcing"
-                    class="absolute top-3 right-3 inline-flex items-center justify-center size-5 rounded-full bg-brand-600 text-white"
-                    aria-hidden="true"
-                  >
-                    <Check class="size-3" />
-                  </span>
-                  <div>
-                    <span class="block text-sm font-medium text-surface-900 dark:text-surface-100">Enable candidate sourcing recommendations</span>
-                    <span class="text-xs text-surface-500">Let AI help you find the best matches.</span>
-                  </div>
-                </button>
-              </div>
-            </section>
-
             <!-- Step 4: Publish & Share -->
-            <section v-else-if="currentStep === 5" class="space-y-8">
+            <section v-else-if="currentStep === 4" class="space-y-8">
               <!-- Success state after publishing -->
               <div v-if="isPublished" class="text-center py-8">
                 <div class="inline-flex items-center justify-center size-16 rounded-full bg-success-100 dark:bg-success-900/30 mb-6">
@@ -1427,13 +1421,13 @@ const questionTypeLabels: Record<QuestionType, string> = {
                   Back
                 </button>
                 <button
-                  v-if="currentStep < 5"
+                  v-if="currentStep < 4"
                   type="button"
                   :disabled="!canGoNext"
                   @click="nextStep"
                   class="px-8 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
-                  Save & continue
+                  Continue
                 </button>
                 <button
                   v-else
@@ -1485,30 +1479,23 @@ const questionTypeLabels: Record<QuestionType, string> = {
                 <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">Adjust weights</p>
                 Use the sliders to prioritize what matters most. Higher weight = more influence on the final score.
               </li>
-              <li v-if="currentStep === 4" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
-                <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">Be specific with skills</p>
-                Adding specific skills helps our AI better match candidates to your role.
+              <li v-if="currentStep === 3" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+                <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">AI setup required</p>
+                To use AI-generated criteria or automatic scoring, configure your AI provider in <NuxtLink :to="$localePath('/dashboard/settings/ai')" class="text-brand-600 dark:text-brand-400 underline">settings</NuxtLink>.
               </li>
-              <li v-if="currentStep === 5" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+              <li v-if="currentStep === 4" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
                 <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">Publish when ready</p>
                 Publishing makes the job visible to candidates. You can unpublish at any time from the job settings.
               </li>
-              <li v-if="currentStep === 5" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+              <li v-if="currentStep === 4" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
                 <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">Share the link</p>
                 After publishing, the application link is automatically copied. Paste it in emails, Slack, or social media.
               </li>
-              <li v-if="currentStep === 5" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+              <li v-if="currentStep === 4" class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
                 <p class="font-medium text-surface-900 dark:text-surface-100 mb-1">Drafts are private</p>
                 Draft jobs are only visible to your team. Candidates cannot see or apply to draft jobs.
               </li>
             </ul>
-          </div>
-          
-          <div v-if="currentStep === 1" class="p-6 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-900/30">
-            <h4 class="text-sm font-semibold text-brand-900 dark:text-brand-100 mb-2">Need help?</h4>
-            <p class="text-xs text-brand-700 dark:text-brand-300 leading-relaxed">
-              Our AI can help you write a compelling job description. Click the magic wand icon in the editor.
-            </p>
           </div>
         </div>
       </aside>
