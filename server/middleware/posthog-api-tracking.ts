@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
       const isError = statusCode >= 400
       const isSlow = duration > 3000
 
-      const logAttrs: Record<string, unknown> = {
+      const logAttrs: Record<string, string | number | boolean | null | undefined> = {
         ...requestAttributes(event),
         http_status: statusCode,
         duration_ms: duration,
