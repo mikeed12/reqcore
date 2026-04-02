@@ -318,17 +318,36 @@ function formatTimelineDate(dateStr: string) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function getTimelineActionColor(action: string): string {
-  switch (action) {
-    case 'created': return 'bg-green-500'
-    case 'status_changed': return 'bg-blue-500'
-    case 'updated': return 'bg-amber-500'
-    case 'deleted': return 'bg-danger-500'
-    case 'comment_added': return 'bg-violet-500'
-    case 'scored': return 'bg-teal-500'
-    case 'scheduled': return 'bg-brand-500'
-    default: return 'bg-surface-400'
+interface TimelineActionStyle {
+  icon: typeof Plus
+  color: string
+  bg: string
+}
+
+function getTimelineActionStyle(action: string): TimelineActionStyle {
+  const map: Record<string, TimelineActionStyle> = {
+    created: { icon: Plus, color: 'text-success-600 dark:text-success-400', bg: 'bg-success-50 dark:bg-success-950/50' },
+    updated: { icon: Pencil, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-950/50' },
+    deleted: { icon: Trash2, color: 'text-danger-600 dark:text-danger-400', bg: 'bg-danger-50 dark:bg-danger-950/50' },
+    status_changed: { icon: ArrowRight, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/50' },
+    comment_added: { icon: MessageSquare, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-950/50' },
+    scored: { icon: Brain, color: 'text-accent-600 dark:text-accent-400', bg: 'bg-accent-50 dark:bg-accent-950/50' },
+    scheduled: { icon: Calendar, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-950/50' },
   }
+  return map[action] ?? { icon: Clock, color: 'text-surface-500 dark:text-surface-400', bg: 'bg-surface-100 dark:bg-surface-800' }
+}
+
+function getTimelineStatusBadge(status: string): string {
+  const s = status.toLowerCase()
+  const map: Record<string, string> = {
+    new: 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300',
+    screening: 'bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-300',
+    interview: 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300',
+    offer: 'bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300',
+    hired: 'bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300',
+    rejected: 'bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300',
+  }
+  return map[s] ?? 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-300'
 }
 
 function describeTimelineItem(item: TimelineEntry): string {
@@ -349,32 +368,6 @@ function describeTimelineItem(item: TimelineEntry): string {
 
   return `${actor} ${action.toLowerCase()} ${resource}`
 }
-
-async function loadTimeline() {
-  const candId = resolvedCurrentApplication.value?.candidate?.id
-  if (!candId) return
-  timelineLoading.value = true
-  timelineError.value = null
-  try {
-    const result = await $fetch<{ items: TimelineEntry[] }>('/api/activity-log/candidate-timeline', {
-      query: { candidateId: candId },
-    })
-    timelineItems.value = result.items
-    timelineLoaded.value = true
-  } catch (err: any) {
-    timelineError.value = err?.data?.statusMessage ?? 'Failed to load timeline'
-  } finally {
-    timelineLoading.value = false
-  }
-}
-
-const timelineCandidateId = computed(() => resolvedCurrentApplication.value?.candidate?.id)
-
-watch([detailTab, timelineCandidateId], () => {
-  if (detailTab.value === 'timeline' && !timelineLoaded.value && timelineCandidateId.value) {
-    loadTimeline()
-  }
-})
 
 // Section refs
 const overviewRef = ref<HTMLElement | null>(null)
@@ -469,6 +462,32 @@ watch(currentApplicationId, async (id) => {
   if (!id) return
   await executeDetailFetch()
 }, { immediate: true })
+
+async function loadTimeline() {
+  const candId = resolvedCurrentApplication.value?.candidate?.id
+  if (!candId) return
+  timelineLoading.value = true
+  timelineError.value = null
+  try {
+    const result = await $fetch<{ items: TimelineEntry[] }>('/api/activity-log/candidate-timeline', {
+      query: { candidateId: candId },
+    })
+    timelineItems.value = result.items
+    timelineLoaded.value = true
+  } catch (err: any) {
+    timelineError.value = err?.data?.statusMessage ?? 'Failed to load timeline'
+  } finally {
+    timelineLoading.value = false
+  }
+}
+
+const timelineCandidateId = computed(() => resolvedCurrentApplication.value?.candidate?.id)
+
+watch([detailTab, timelineCandidateId], () => {
+  if (detailTab.value === 'timeline' && !timelineLoaded.value && timelineCandidateId.value) {
+    loadTimeline()
+  }
+})
 
 useSeoMeta({
   title: computed(() =>
@@ -2453,36 +2472,44 @@ function closeDocPreview() {
 
                 <!-- Timeline list -->
                 <div v-else class="relative">
-                  <div class="absolute left-[11px] top-2 bottom-2 w-px bg-surface-200 dark:bg-surface-700" />
+                  <!-- Vertical timeline line -->
+                  <div class="absolute left-3 top-0 bottom-0 w-px bg-surface-200 dark:bg-surface-800" />
 
-                  <div
-                    v-for="item in timelineItems"
-                    :key="item.id"
-                    class="relative flex gap-3 py-2.5 group"
-                  >
-                    <!-- Dot -->
-                    <div class="relative z-10 mt-1 shrink-0">
-                      <div
-                        class="size-[9px] rounded-full ring-2 ring-white dark:ring-surface-950"
-                        :class="getTimelineActionColor(item.action)"
-                      />
-                    </div>
+                  <div class="space-y-0.5">
+                    <div
+                      v-for="item in timelineItems"
+                      :key="item.id"
+                      class="group relative flex items-start gap-3 py-2 px-1 transition-colors duration-150 hover:bg-surface-50 dark:hover:bg-surface-800/40 rounded-lg"
+                    >
+                      <!-- Action icon -->
+                      <div class="relative z-10 flex items-center justify-center size-6 rounded shrink-0" :class="getTimelineActionStyle(item.action).bg">
+                        <component :is="getTimelineActionStyle(item.action).icon" class="size-3" :class="getTimelineActionStyle(item.action).color" />
+                      </div>
 
-                    <!-- Content -->
-                    <div class="min-w-0 flex-1">
-                      <p class="text-sm text-surface-700 dark:text-surface-200 leading-snug">
-                        {{ describeTimelineItem(item) }}
-                      </p>
-                      <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[11px] text-surface-400 dark:text-surface-500 tabular-nums">
-                          {{ formatTimelineDate(item.createdAt) }}
-                        </span>
-                        <span
-                          v-if="item.jobTitle"
-                          class="text-[10px] text-surface-400 dark:text-surface-500 bg-surface-100 dark:bg-surface-800 rounded px-1.5 py-0.5 truncate max-w-[140px]"
-                        >
-                          {{ item.jobTitle }}
-                        </span>
+                      <!-- Content -->
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-[13px] font-medium text-surface-900 dark:text-surface-100 shrink-0">{{ timelineActionLabels[item.action] ?? item.action }}</span>
+                          <span class="text-[13px] text-surface-500 dark:text-surface-400">{{ item.resourceType }}</span>
+                          <template v-if="item.action === 'status_changed' && item.metadata">
+                            <span v-if="item.metadata.from_status || item.metadata.fromStatus" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getTimelineStatusBadge(String(item.metadata.from_status ?? item.metadata.fromStatus))">{{ item.metadata.from_status ?? item.metadata.fromStatus }}</span>
+                            <ArrowRight class="size-2.5 text-surface-400 dark:text-surface-500 shrink-0" />
+                            <span v-if="item.metadata.to_status || item.metadata.toStatus" class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none" :class="getTimelineStatusBadge(String(item.metadata.to_status ?? item.metadata.toStatus))">{{ item.metadata.to_status ?? item.metadata.toStatus }}</span>
+                          </template>
+                          <template v-else-if="item.action === 'scored' && item.metadata?.score">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none bg-accent-100 text-accent-700 dark:bg-accent-900/60 dark:text-accent-300">{{ item.metadata.score }} pts</span>
+                          </template>
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                          <span v-if="item.actorName || item.actorEmail" class="text-[11px] text-surface-400 dark:text-surface-500">{{ item.actorName ?? item.actorEmail }}</span>
+                          <span class="text-[11px] text-surface-400 dark:text-surface-500 tabular-nums">{{ formatTimelineDate(item.createdAt) }}</span>
+                          <span
+                            v-if="item.jobTitle"
+                            class="text-[10px] text-surface-400 dark:text-surface-500 bg-surface-100 dark:bg-surface-800 rounded px-1.5 py-0.5 truncate max-w-[140px]"
+                          >
+                            {{ item.jobTitle }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
