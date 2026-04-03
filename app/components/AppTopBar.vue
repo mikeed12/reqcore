@@ -119,14 +119,14 @@ const jobTabs = computed(() => {
 // Main navigation
 // ─────────────────────────────────────────────
 
-const mainNav = [
+const mainNav: Array<{ label: string; to: string; icon: typeof Briefcase; exact: boolean; comingSoon?: boolean }> = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, exact: true },
   { label: 'Jobs', to: '/dashboard/jobs', icon: Briefcase, exact: false },
   { label: 'Candidates', to: '/dashboard/candidates', icon: Users, exact: false },
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Timeline', to: '/dashboard/timeline', icon: History, exact: true },
-  { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true, comingSoon: true },
+  { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
   { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
 ]
