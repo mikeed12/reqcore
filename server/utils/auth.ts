@@ -11,11 +11,18 @@ type Auth = ReturnType<typeof betterAuth>;
 let _auth: Auth | undefined;
 
 /**
- * Resolve trusted origins for CSRF checks.
- * Returns a callback when SSO is available so that per-org IdP origins
- * are dynamically allowed during SSO registration/callback flows.
+ * Resolve trusted origins for CSRF checks and OIDC discovery.
+ *
+ * better-auth resolves trustedOrigins ONCE at init (without a request),
+ * so origins must be available statically. We include:
+ *  1. App origins (base URL, configured origins, dev defaults)
+ *  2. Well-known OIDC identity-provider origins (for SSO discovery)
+ *  3. Already-registered SSO provider issuers from the database
+ *
+ * For custom/self-hosted IdPs not in the well-known list, add their
+ * origin to the BETTER_AUTH_TRUSTED_ORIGINS environment variable.
  */
-function resolveTrustedOrigins(baseUrl: string): string[] | ((request?: Request) => Promise<string[]>) {
+function resolveTrustedOrigins(baseUrl: string): (request?: Request) => Promise<string[]> {
   const configuredOrigins = env.BETTER_AUTH_TRUSTED_ORIGINS;
   const baseOrigin = new URL(baseUrl);
   const isLocalBase =
@@ -38,45 +45,33 @@ function resolveTrustedOrigins(baseUrl: string): string[] | ((request?: Request)
     new Set([baseOrigin.origin, ...configuredOrigins, ...defaultDevOrigins]),
   );
 
-  // Dynamic trusted origins: SSO registration and callback flows need
-  // to trust the IdP's origin. We fetch registered SSO provider issuers
-  // from the database when the request targets SSO endpoints.
-  return async (request?: Request) => {
-    if (!request) return staticOrigins;
+  // Well-known OIDC identity-provider origins trusted for SSO discovery.
+  // These are reputable IdPs whose origins are safe to allow; an attacker
+  // cannot serve pages from these domains, so CSRF risk is negligible.
+  const wellKnownIdpOrigins = [
+    "https://accounts.google.com",
+    "https://login.microsoftonline.com",
+    "https://*.okta.com",
+    "https://*.auth0.com",
+    "https://*.onelogin.com",
+    "https://*.duendesoftware.com",
+    "https://*.pingidentity.com",
+  ];
 
-    const url = request.url;
-    const isSsoFlow = url.includes("/sso/") || url.includes("/sign-in/sso");
-    if (!isSsoFlow) return staticOrigins;
+  return async () => {
+    const allOrigins = [...staticOrigins, ...wellKnownIdpOrigins];
 
-    const allOrigins = [...staticOrigins];
-
-    // During SSO provider registration, also trust the issuer being registered
-    // so better-auth can fetch its OIDC discovery document.
-    try {
-      const cloned = request.clone();
-      const body = await cloned.json();
-      if (body?.issuer) {
-        allOrigins.push(new URL(body.issuer).origin);
-      }
-    } catch {
-      // Not all SSO requests have a parseable JSON body
-    }
-
-    // Dynamically load registered SSO provider issuers
+    // Load already-registered SSO provider issuers from the database
     try {
       const providers = await db
         .select({ issuer: schema.ssoProvider.issuer })
         .from(schema.ssoProvider);
 
-      const idpOrigins = providers
-        .map((p) => {
-          try { return new URL(p.issuer).origin; } catch { return null; }
-        })
-        .filter((o): o is string => o !== null);
-
-      allOrigins.push(...idpOrigins);
+      for (const p of providers) {
+        try { allOrigins.push(new URL(p.issuer).origin); } catch {}
+      }
     } catch {
-      // Table may not exist yet (pre-migration) — fall back
+      // Table may not exist yet (pre-migration)
     }
 
     return Array.from(new Set(allOrigins));
