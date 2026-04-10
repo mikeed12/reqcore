@@ -126,8 +126,8 @@ const mainNav: Array<{ label: string; to: string; icon: typeof Briefcase; exact:
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Timeline', to: '/dashboard/timeline', icon: History, exact: true },
-  { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
-  { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
+  // { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
+  // { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
 ]
 
@@ -278,7 +278,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Language Switcher -->
-          <div class="hidden lg:block">
+          <div class="hidden">
             <LanguageSwitcher />
           </div>
 
@@ -292,18 +292,20 @@ onUnmounted(() => {
             <Moon v-else class="size-4" />
           </button>
 
-          <!-- Updates button -->
-          <NuxtLink
-            :to="$localePath('/dashboard/updates')"
-            class="hidden sm:flex items-center justify-center size-8 rounded-lg transition-all duration-200 no-underline"
-            :class="isActiveRoute('/dashboard/updates', false)
+          <div class="hidden">
+            <!-- Updates button -->
+            <NuxtLink
+                :to="$localePath('/dashboard/updates')"
+                class="hidden sm:flex items-center justify-center size-8 rounded-lg transition-all duration-200 no-underline"
+                :class="isActiveRoute('/dashboard/updates', false)
               ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40'
               : 'text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'"
-            title="Updates & changelog"
-            aria-label="Updates & changelog"
-          >
-            <ArrowUpCircle class="size-4" />
-          </NuxtLink>
+                title="Updates & changelog"
+                aria-label="Updates & changelog"
+            >
+              <ArrowUpCircle class="size-4" />
+            </NuxtLink>
+          </div>
 
           <!-- Feedback button -->
           <button

@@ -33,7 +33,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 <template>
   <div ref="switcherRoot" class="relative">
     <button
-      class="flex items-center justify-between w-full px-3 py-2 bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-md cursor-pointer text-[13px] font-medium text-surface-900 dark:text-surface-100 text-left hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+      class="me-3 flex items-center justify-between w-full px-3 py-2 bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-md cursor-pointer text-[13px] font-medium text-surface-900 dark:text-surface-100 text-left hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
       @click="isOpen = !isOpen"
     >
       <ClientOnly fallback="Select org">
