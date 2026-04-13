@@ -37,7 +37,17 @@ watch(activeOrg, (org) => {
   if (org) {
     orgName.value = org.name ?? ''
     orgSlug.value = org.slug ?? ''
-    webrtcUrl.value = JSON.parse(org.metadata).webrtcUrl;
+
+    let url = null;
+
+    try {
+      const metadata = JSON.parse(org.metadata);
+      url = metadata?.webrtcUrl || null;
+    } catch (e) {
+      url = null;
+    }
+
+    webrtcUrl.value = url;
   }
 }, { immediate: true })
 
