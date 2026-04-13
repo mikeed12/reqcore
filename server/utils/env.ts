@@ -108,6 +108,20 @@ export const envSchema = z
     GOOGLE_CLIENT_ID: emptyToUndefined.pipe(z.string().min(1)).optional(),
     /** Google OAuth2 Client Secret for Calendar integration. */
     GOOGLE_CLIENT_SECRET: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** Google OAuth2 Client ID for social sign-in. Obtain from Google Cloud Console → Credentials. */
+    AUTH_GOOGLE_CLIENT_ID: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** Google OAuth2 Client Secret for social sign-in. */
+    AUTH_GOOGLE_CLIENT_SECRET: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** GitHub OAuth App Client ID for social sign-in. Obtain from GitHub Developer Settings. */
+    AUTH_GITHUB_CLIENT_ID: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** GitHub OAuth App Client Secret for social sign-in. */
+    AUTH_GITHUB_CLIENT_SECRET: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** Microsoft Entra ID Client ID for social sign-in. Obtain from Azure Portal → App Registrations. */
+    AUTH_MICROSOFT_CLIENT_ID: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** Microsoft Entra ID Client Secret for social sign-in. */
+    AUTH_MICROSOFT_CLIENT_SECRET: emptyToUndefined.pipe(z.string().min(1)).optional(),
+    /** Microsoft Entra ID Tenant ID. Defaults to 'common' (multi-tenant). */
+    AUTH_MICROSOFT_TENANT_ID: emptyToUndefined.pipe(z.string().min(1)).optional().default('common'),
     /** Shared secret for authenticating cron/scheduled job requests (e.g., webhook renewal). */
     CRON_SECRET: emptyToUndefined.pipe(z.string().min(16)).optional(),
     /** OIDC client ID for SSO authentication (e.g., Keycloak, Authentik, Authelia, Okta). */
@@ -188,7 +202,7 @@ export const env = new Proxy({} as z.infer<typeof envSchema>, {
             `Ensure these variables are set in your Railway service (Settings → Variables).\n` +
             `Required: DATABASE_URL, BETTER_AUTH_SECRET, S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET\n` +
             `Required when not on Railway: BETTER_AUTH_URL (or generate a Railway domain)\n` +
-            `Optional: BETTER_AUTH_TRUSTED_ORIGINS, S3_REGION (default: us-east-1), S3_FORCE_PATH_STYLE (default: true), TRUSTED_PROXY_IP, DEMO_ORG_SLUG, RESEND_API_KEY, RESEND_FROM_EMAIL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_DISCOVERY_URL, OIDC_PROVIDER_NAME\n`,
+            `Optional: BETTER_AUTH_TRUSTED_ORIGINS, S3_REGION (default: us-east-1), S3_FORCE_PATH_STYLE (default: true), TRUSTED_PROXY_IP, DEMO_ORG_SLUG, RESEND_API_KEY, RESEND_FROM_EMAIL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_DISCOVERY_URL, OIDC_PROVIDER_NAME, AUTH_GOOGLE_CLIENT_ID, AUTH_GOOGLE_CLIENT_SECRET, AUTH_GITHUB_CLIENT_ID, AUTH_GITHUB_CLIENT_SECRET, AUTH_MICROSOFT_CLIENT_ID, AUTH_MICROSOFT_CLIENT_SECRET, AUTH_MICROSOFT_TENANT_ID\n`,
         );
         throw result.error;
       }

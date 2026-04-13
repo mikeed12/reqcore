@@ -4,7 +4,7 @@ import { organization, genericOAuth } from "better-auth/plugins";
 import { sso } from "@better-auth/sso";
 import { eq } from "drizzle-orm";
 import { ac, owner, admin, member } from "~~/shared/permissions";
-import { sendOrgInvitationEmail } from "./email";
+import { sendOrgInvitationEmail, sendPasswordResetEmail } from "./email";
 import * as schema from "../database/schema";
 
 type Auth = ReturnType<typeof betterAuth>;
@@ -158,8 +158,79 @@ function getAuth(): Auth {
         schema,
       }),
       secret: env.BETTER_AUTH_SECRET,
+
+      // ── Session Hardening ────────────────────────────────────
+      // Explicit session duration for an ATS handling sensitive hiring data.
+      // Default Better Auth values (7 days / 1 day) are too permissive.
+      session: {
+        expiresIn: 60 * 60 * 24, // 24 hours
+        updateAge: 60 * 60,      // Refresh session every 1 hour
+      },
+
       emailAndPassword: {
         enabled: true,
+        // Server-side password policy — prevents bypass via direct API calls.
+        // Client-side validation (sign-up.vue) is UX only; this is the enforcement.
+        minPasswordLength: 8,
+        maxPasswordLength: 128,
+        // Password reset via email.
+        async sendResetPassword({ user, url, token }, request) {
+          void sendPasswordResetEmail({ user, url, token });
+        },
+      },
+
+      // ── OAuth Token Encryption at Rest ──────────────────────
+      // Better Auth's built-in AES encryption for OAuth tokens (access, refresh, id).
+      // Handles both encryption on write and automatic decryption on read,
+      // using BETTER_AUTH_SECRET as the encryption key.
+      account: {
+        encryptOAuthTokens: true,
+      },
+
+      // ── Rate Limiting (built-in, database-backed) ──────────
+      // Uses DB storage so limits persist across restarts and share
+      // state across instances (horizontal scaling).
+      // Complements the external IP-based rate limiter in api-rate-limit.ts
+      // with account-level throttling for auth-sensitive endpoints.
+      // Disabled in CI/test (GITHUB_ACTIONS or NODE_ENV !== 'production')
+      // to prevent E2E test flakiness.
+      rateLimit: {
+        enabled: !process.env.CI && !process.env.GITHUB_ACTIONS,
+        window: 60,
+        max: 100,        // 100 requests per minute per IP — stops bots, not humans
+        storage: "database",
+      },
+
+      socialProviders: {
+        // ── Social Sign-In (Google, GitHub, Microsoft) ────────────
+        // Each provider is enabled only when its client ID + secret are set.
+        ...(env.AUTH_GOOGLE_CLIENT_ID && env.AUTH_GOOGLE_CLIENT_SECRET
+          ? {
+              google: {
+                clientId: env.AUTH_GOOGLE_CLIENT_ID,
+                clientSecret: env.AUTH_GOOGLE_CLIENT_SECRET,
+                prompt: "select_account",
+              },
+            }
+          : {}),
+        ...(env.AUTH_GITHUB_CLIENT_ID && env.AUTH_GITHUB_CLIENT_SECRET
+          ? {
+              github: {
+                clientId: env.AUTH_GITHUB_CLIENT_ID,
+                clientSecret: env.AUTH_GITHUB_CLIENT_SECRET,
+              },
+            }
+          : {}),
+        ...(env.AUTH_MICROSOFT_CLIENT_ID && env.AUTH_MICROSOFT_CLIENT_SECRET
+          ? {
+              microsoft: {
+                clientId: env.AUTH_MICROSOFT_CLIENT_ID,
+                clientSecret: env.AUTH_MICROSOFT_CLIENT_SECRET,
+                tenantId: env.AUTH_MICROSOFT_TENANT_ID || "common",
+                prompt: "select_account",
+              },
+            }
+          : {}),
       },
       plugins: [
         organization({
