@@ -161,6 +161,37 @@ function getAuth(): Auth {
       emailAndPassword: {
         enabled: true,
       },
+      socialProviders: {
+        // ── Social Sign-In (Google, GitHub, Microsoft) ────────────
+        // Each provider is enabled only when its client ID + secret are set.
+        ...(env.AUTH_GOOGLE_CLIENT_ID && env.AUTH_GOOGLE_CLIENT_SECRET
+          ? {
+              google: {
+                clientId: env.AUTH_GOOGLE_CLIENT_ID,
+                clientSecret: env.AUTH_GOOGLE_CLIENT_SECRET,
+                prompt: "select_account",
+              },
+            }
+          : {}),
+        ...(env.AUTH_GITHUB_CLIENT_ID && env.AUTH_GITHUB_CLIENT_SECRET
+          ? {
+              github: {
+                clientId: env.AUTH_GITHUB_CLIENT_ID,
+                clientSecret: env.AUTH_GITHUB_CLIENT_SECRET,
+              },
+            }
+          : {}),
+        ...(env.AUTH_MICROSOFT_CLIENT_ID && env.AUTH_MICROSOFT_CLIENT_SECRET
+          ? {
+              microsoft: {
+                clientId: env.AUTH_MICROSOFT_CLIENT_ID,
+                clientSecret: env.AUTH_MICROSOFT_CLIENT_SECRET,
+                tenantId: env.AUTH_MICROSOFT_TENANT_ID || "common",
+                prompt: "select_account",
+              },
+            }
+          : {}),
+      },
       plugins: [
         organization({
           // ── Access Control ──────────────────────────────────────

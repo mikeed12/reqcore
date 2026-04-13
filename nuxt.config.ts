@@ -222,6 +222,21 @@ export default defineNuxtConfig({
       ),
       /** Display name for the SSO provider button */
       oidcProviderName: process.env.OIDC_PROVIDER_NAME || "SSO",
+      /** Whether Google social sign-in is enabled */
+      authGoogleEnabled: !!(
+        process.env.AUTH_GOOGLE_CLIENT_ID &&
+        process.env.AUTH_GOOGLE_CLIENT_SECRET
+      ),
+      /** Whether GitHub social sign-in is enabled */
+      authGithubEnabled: !!(
+        process.env.AUTH_GITHUB_CLIENT_ID &&
+        process.env.AUTH_GITHUB_CLIENT_SECRET
+      ),
+      /** Whether Microsoft social sign-in is enabled */
+      authMicrosoftEnabled: !!(
+        process.env.AUTH_MICROSOFT_CLIENT_ID &&
+        process.env.AUTH_MICROSOFT_CLIENT_SECRET
+      ),
     },
   },
 
