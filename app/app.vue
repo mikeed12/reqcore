@@ -10,7 +10,7 @@ useHead(() => ({
 }))
 
 // Sync Better Auth session → PostHog identity & org group
-await usePostHogIdentity()
+await usePostHogIdentity();
 </script>
 
 <template>

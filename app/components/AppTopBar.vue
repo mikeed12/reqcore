@@ -7,6 +7,8 @@ import {
   LayoutDashboard, Calendar, ArrowUpCircle,
   Cloud, Server, Sparkles, Radio, History,
 } from 'lucide-vue-next'
+import DialerDropdown from "~/components/phone/DialerDropdown.vue";
+import Dialer from "~/components/phone/Dialer.vue";
 
 const route = useRoute()
 const localePath = useLocalePath()
@@ -262,6 +264,8 @@ onUnmounted(() => {
               </div>
             </Transition>
           </div>
+
+          <Dialer />
 
           <!-- New Job button (desktop) -->
           <NuxtLink

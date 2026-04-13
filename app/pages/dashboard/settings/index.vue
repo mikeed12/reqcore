@@ -18,6 +18,7 @@ const { track } = useTrack()
 // ─────────────────────────────────────────────
 const orgName = ref('')
 const orgSlug = ref('')
+const webrtcUrl = ref('')
 const isSaving = ref(false)
 const saveSuccess = ref(false)
 const saveError = ref('')
@@ -36,6 +37,7 @@ watch(activeOrg, (org) => {
   if (org) {
     orgName.value = org.name ?? ''
     orgSlug.value = org.slug ?? ''
+    webrtcUrl.value = JSON.parse(org.metadata).webrtcUrl;
   }
 }, { immediate: true })
 
@@ -44,6 +46,7 @@ async function handleSaveOrg() {
 
   const trimmedName = orgName.value.trim()
   const trimmedSlug = orgSlug.value.trim().toLowerCase()
+  const trimmedWebrtcUrl = webrtcUrl.value.trim()
 
   // Prevent saving empty or invalid values
   if (!trimmedName) {
@@ -64,6 +67,7 @@ async function handleSaveOrg() {
       data: {
         name: trimmedName,
         slug: trimmedSlug,
+        metadata: {webrtcUrl: trimmedWebrtcUrl}
       },
     })
     track('org_settings_saved')
@@ -179,6 +183,20 @@ async function handleDeleteOrg() {
           <p v-if="slugError" class="mt-1 text-xs text-danger-500">
             {{ slugError }}
           </p>
+        </div>
+
+        <div>
+          <label for="org-name" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">
+            WebRTC URL
+          </label>
+          <input
+              id="org-name"
+              v-model="webrtcUrl"
+              type="text"
+              :disabled="!canUpdateOrg"
+              class="w-full rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-2 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="example.com"
+          />
         </div>
 
         <!-- Save button & feedback -->
