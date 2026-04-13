@@ -5,7 +5,6 @@ import { sso } from "@better-auth/sso";
 import { eq } from "drizzle-orm";
 import { ac, owner, admin, member } from "~~/shared/permissions";
 import { sendOrgInvitationEmail, sendPasswordResetEmail } from "./email";
-import { encrypt } from "./encryption";
 import * as schema from "../database/schema";
 
 type Auth = ReturnType<typeof betterAuth>;
@@ -181,37 +180,11 @@ function getAuth(): Auth {
       },
 
       // ── OAuth Token Encryption at Rest ──────────────────────
-      // AES-256-GCM encrypt OAuth tokens before storing in the database.
-      // Uses the existing encryption.ts utility with BETTER_AUTH_SECRET as the key.
-      databaseHooks: {
-        account: {
-          create: {
-            before: async (account) => {
-              const secret = env.BETTER_AUTH_SECRET;
-              return {
-                data: {
-                  ...account,
-                  ...(account.accessToken ? { accessToken: encrypt(account.accessToken, secret) } : {}),
-                  ...(account.refreshToken ? { refreshToken: encrypt(account.refreshToken, secret) } : {}),
-                  ...(account.idToken ? { idToken: encrypt(account.idToken, secret) } : {}),
-                },
-              };
-            },
-          },
-          update: {
-            before: async (account) => {
-              const secret = env.BETTER_AUTH_SECRET;
-              return {
-                data: {
-                  ...account,
-                  ...(account.accessToken ? { accessToken: encrypt(account.accessToken, secret) } : {}),
-                  ...(account.refreshToken ? { refreshToken: encrypt(account.refreshToken, secret) } : {}),
-                  ...(account.idToken ? { idToken: encrypt(account.idToken, secret) } : {}),
-                },
-              };
-            },
-          },
-        },
+      // Better Auth's built-in AES encryption for OAuth tokens (access, refresh, id).
+      // Handles both encryption on write and automatic decryption on read,
+      // using BETTER_AUTH_SECRET as the encryption key.
+      account: {
+        encryptOAuthTokens: true,
       },
 
       // ── Rate Limiting (built-in, database-backed) ──────────

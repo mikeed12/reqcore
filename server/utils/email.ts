@@ -31,28 +31,33 @@ export async function sendVerificationEmail(data: {
   const resend = getResendClient()
 
   if (!resend) {
-    console.info(
-      `[Reqcore] Verification email → ${data.user.email} | ` +
-      `Link: ${data.url}`,
-    )
+    console.warn('[Reqcore] Verification email suppressed — RESEND_API_KEY is not configured')
     return
   }
 
   const fromEmail = env.RESEND_FROM_EMAIL
 
-  const { error } = await resend.emails.send({
-    from: fromEmail,
-    to: [data.user.email],
-    subject: 'Verify your email address — Reqcore',
-    html: buildVerificationHtml({ url: data.url }),
-    text: buildVerificationText({ url: data.url }),
-    tags: [{ name: 'category', value: 'verification' }],
-  })
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: [data.user.email],
+      subject: 'Verify your email address — Reqcore',
+      html: buildVerificationHtml({ url: data.url }),
+      text: buildVerificationText({ url: data.url }),
+      tags: [{ name: 'category', value: 'verification' }],
+    })
 
-  if (error) {
+    if (error) {
+      logError('email.verification_send_failed', {
+        provider: 'resend',
+        error_message: error.message,
+      })
+    }
+  }
+  catch (err) {
     logError('email.verification_send_failed', {
       provider: 'resend',
-      error_message: error.message,
+      error_message: err instanceof Error ? err.message : String(err),
     })
   }
 }
@@ -72,28 +77,33 @@ export async function sendPasswordResetEmail(data: {
   const resend = getResendClient()
 
   if (!resend) {
-    console.info(
-      `[Reqcore] Password reset email → ${data.user.email} | ` +
-      `Link: ${data.url}`,
-    )
+    console.warn('[Reqcore] Password reset email suppressed — RESEND_API_KEY is not configured')
     return
   }
 
   const fromEmail = env.RESEND_FROM_EMAIL
 
-  const { error } = await resend.emails.send({
-    from: fromEmail,
-    to: [data.user.email],
-    subject: 'Reset your password — Reqcore',
-    html: buildPasswordResetHtml({ url: data.url }),
-    text: buildPasswordResetText({ url: data.url }),
-    tags: [{ name: 'category', value: 'password-reset' }],
-  })
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: [data.user.email],
+      subject: 'Reset your password — Reqcore',
+      html: buildPasswordResetHtml({ url: data.url }),
+      text: buildPasswordResetText({ url: data.url }),
+      tags: [{ name: 'category', value: 'password-reset' }],
+    })
 
-  if (error) {
+    if (error) {
+      logError('email.password_reset_send_failed', {
+        provider: 'resend',
+        error_message: error.message,
+      })
+    }
+  }
+  catch (err) {
     logError('email.password_reset_send_failed', {
       provider: 'resend',
-      error_message: error.message,
+      error_message: err instanceof Error ? err.message : String(err),
     })
   }
 }

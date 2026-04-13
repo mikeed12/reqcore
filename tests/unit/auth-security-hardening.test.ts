@@ -7,6 +7,13 @@ import { encrypt, decrypt } from '../../server/utils/encryption'
  * Validates the security-critical configurations applied to the Better Auth
  * instance. These tests verify the _intent_ of the config by simulating the
  * same logic, since the live auth instance requires a running database.
+ *
+ * NOTE: Password policy, session, and rate-limit constants are intentionally
+ * duplicated here (not imported from auth.ts) because getAuth() is a lazy
+ * factory that requires a live Postgres connection. If the production values
+ * drift, these tests won't catch it — that is covered by integration/E2E tests.
+ * The value of these unit tests is documenting and enforcing the security
+ * contract (e.g. "session must not exceed 24 h") independently of the runtime.
  */
 
 // ── Issue #2: Server-side password policy ───────────────────────────
@@ -132,27 +139,8 @@ describe('Rate limiting configuration', () => {
 })
 
 // ── Issue #5: OAuth PKCE verification ───────────────────────────────
-
-describe('OAuth PKCE and state protection', () => {
-  it('OIDC config has PKCE explicitly enabled', () => {
-    // Mirrors the genericOAuth config in auth.ts
-    const oidcConfig = {
-      pkce: true,
-      requireIssuerValidation: true,
-      scopes: ['openid', 'email', 'profile'],
-    }
-    expect(oidcConfig.pkce).toBe(true)
-    expect(oidcConfig.requireIssuerValidation).toBe(true)
-  })
-
-  it('Better Auth includes codeVerifier in OAuth state by default', () => {
-    // Per Better Auth docs: OAuth state always includes codeVerifier
-    // This confirms PKCE is used for all social providers by default
-    const defaultOAuthState = {
-      callbackURL: 'https://example.com/callback',
-      codeVerifier: 'random_pkce_verifier_value',
-      errorURL: '/auth/error',
-    }
-    expect(defaultOAuthState).toHaveProperty('codeVerifier')
-  })
-})
+// Better Auth enables PKCE (codeVerifier in OAuth state) by default for
+// all social providers. The genericOAuth plugin config in auth.ts sets
+// pkce: true explicitly for OIDC. No unit test can exercise the real
+// OAuth state builder without a running auth instance; these assertions
+// are intentionally omitted until an integration test harness exists.
