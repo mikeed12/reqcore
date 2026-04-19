@@ -9,16 +9,17 @@ Everything you need to deploy, manage, and update your own Reqcore applicant tra
 1. [What is Self-Hosting?](#what-is-self-hosting)
 2. [Why Self-Host Reqcore?](#why-self-host-reqcore)
 3. [Requirements](#requirements)
-4. [Quick Start (5 Minutes)](#quick-start-5-minutes)
-5. [Step-by-Step Installation](#step-by-step-installation)
-6. [Updating Your Instance](#updating-your-instance)
-7. [Backups & Data Safety](#backups--data-safety)
-8. [Custom Domain & HTTPS](#custom-domain--https)
-9. [Email Configuration](#email-configuration)
-10. [Security Best Practices](#security-best-practices)
-11. [Monitoring & Health Checks](#monitoring--health-checks)
-12. [Troubleshooting](#troubleshooting)
-13. [FAQ](#faq)
+4. [Quick Start — Pre-built Image (Fastest)](#quick-start--pre-built-image-fastest)
+5. [Quick Start — Build from Source (5 Minutes)](#quick-start--build-from-source-5-minutes)
+6. [Step-by-Step Installation](#step-by-step-installation)
+7. [Updating Your Instance](#updating-your-instance)
+8. [Backups & Data Safety](#backups--data-safety)
+9. [Custom Domain & HTTPS](#custom-domain--https)
+10. [Email Configuration](#email-configuration)
+11. [Security Best Practices](#security-best-practices)
+12. [Monitoring & Health Checks](#monitoring--health-checks)
+13. [Troubleshooting](#troubleshooting)
+14. [FAQ](#faq)
 
 ---
 
@@ -79,9 +80,41 @@ All of these providers offer one-click Docker installation when creating a serve
 
 ---
 
-## Quick Start (5 Minutes)
+## Quick Start — Pre-built Image (Fastest)
 
-If you have Docker already installed and just want to get running:
+Use the official pre-built Docker image from GitHub Container Registry. No cloning, no building — just pull and run:
+
+```bash
+# 1. Download just the files you need
+mkdir reqcore && cd reqcore
+curl -fsSLO https://raw.githubusercontent.com/reqcore-inc/reqcore/main/docker-compose.production.yml
+curl -fsSLO https://raw.githubusercontent.com/reqcore-inc/reqcore/main/setup.sh
+chmod +x setup.sh
+
+# 2. Generate secure passwords (one-time)
+./setup.sh
+
+# 3. Start everything
+docker compose -f docker-compose.production.yml up -d
+
+# 4. Open your browser
+# → http://localhost:3000
+```
+
+That's it. Sign up, create your organization, and start hiring.
+
+**Want to pin a specific version?** Edit `docker-compose.production.yml` and replace `latest` with a version tag (e.g., `1.3.0`):
+
+```yaml
+app:
+  image: ghcr.io/reqcore-inc/reqcore:1.3.0
+```
+
+---
+
+## Quick Start — Build from Source (5 Minutes)
+
+If you prefer to build from source (useful for development or customization):
 
 ```bash
 # 1. Download Reqcore
@@ -98,7 +131,7 @@ docker compose up -d
 # → http://localhost:3000
 ```
 
-That's it. Sign up, create your organization, and start hiring.
+Sign up, create your organization, and start hiring.
 
 **Want demo data to explore first?**
 
@@ -217,9 +250,31 @@ Reqcore includes a built-in update system accessible from the Settings panel. No
 
 The UI shows the progress of each update step and clearly indicates success or failure. Your data is always preserved — database migrations run automatically.
 
-### Method 2: Update from the Command Line
+### Method 2: Update from the Command Line (Pre-built Image)
 
-If you prefer using the terminal, or the UI update isn't available:
+If you're using the pre-built image (`docker-compose.production.yml`):
+
+```bash
+# Navigate to your Reqcore directory
+cd /path/to/reqcore
+
+# Pull the latest image and restart
+docker compose -f docker-compose.production.yml pull app
+docker compose -f docker-compose.production.yml up -d
+```
+
+To update to a specific version, edit `docker-compose.production.yml` and change the image tag:
+
+```yaml
+app:
+  image: ghcr.io/reqcore-inc/reqcore:1.4.0
+```
+
+Then run `docker compose -f docker-compose.production.yml up -d`.
+
+### Method 3: Update from the Command Line (Build from Source)
+
+If you cloned the repository and build locally:
 
 ```bash
 # Navigate to your Reqcore directory
@@ -447,6 +502,68 @@ sudo apt update && sudo apt upgrade docker-ce docker-ce-cli containerd.io
 sudo apt install unattended-upgrades
 sudo dpkg-reconfigure -plow unattended-upgrades
 ```
+
+---
+
+## OIDC Single Sign-On (SSO)
+
+Reqcore supports Single Sign-On via any OIDC-compliant identity provider — Keycloak, Authentik, Authelia, Okta, Azure AD, and more. When configured, a "Sign in with SSO" button appears on the login and registration pages.
+
+### Why SSO?
+
+- **Centralized identity** — users sign in once across all internal tools
+- **Zero-friction onboarding** — new hires get instant access, leavers are cut off centrally
+- **Enterprise security** — MFA, session policies, and brute-force protection managed in one place
+
+### Setup
+
+**1. Create an OIDC client in your identity provider:**
+
+| Setting | Value |
+|---|---|
+| Client type | OpenID Connect (confidential) |
+| Client ID | Any name (e.g., `reqcore`) |
+| Client authentication | ON (confidential/secret) |
+| Valid redirect URI | `https://your-reqcore-domain.com/api/auth/oauth2/callback/oidc` |
+| Valid post-logout redirect URI | `https://your-reqcore-domain.com/*` |
+| Scopes | `openid`, `email`, `profile` |
+
+**2. Set environment variables:**
+
+```bash
+# All three are required to activate SSO
+OIDC_CLIENT_ID=reqcore
+OIDC_CLIENT_SECRET=your-client-secret-from-provider
+OIDC_DISCOVERY_URL=https://keycloak.example.com/realms/master/.well-known/openid-configuration
+
+# Optional: customize the button label (default: "SSO")
+OIDC_PROVIDER_NAME=Company SSO
+```
+
+**3. Restart Reqcore:**
+
+```bash
+docker compose down && docker compose up -d
+```
+
+The SSO button appears automatically on the sign-in and sign-up pages.
+
+### Provider-Specific Discovery URLs
+
+| Provider | Discovery URL format |
+|---|---|
+| Keycloak | `https://keycloak.example.com/realms/YOUR_REALM/.well-known/openid-configuration` |
+| Authentik | `https://authentik.example.com/application/o/YOUR_APP/.well-known/openid-configuration` |
+| Authelia | `https://authelia.example.com/.well-known/openid-configuration` |
+| Okta | `https://YOUR_ORG.okta.com/.well-known/openid-configuration` |
+| Azure AD | `https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0/.well-known/openid-configuration` |
+
+### Security
+
+- **PKCE** (Proof Key for Code Exchange) is enabled by default for protection against authorization code interception
+- **Issuer validation** (RFC 9207) is enforced to prevent OAuth mix-up attacks
+- **OIDC discovery** automatically fetches and validates all provider endpoints
+- SSO is **completely opt-in** — it has zero impact when the environment variables are not set
 
 ---
 
