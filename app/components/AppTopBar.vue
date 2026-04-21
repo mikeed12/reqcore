@@ -126,8 +126,8 @@ const mainNav: Array<{ label: string; to: string; icon: typeof Briefcase; exact:
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Timeline', to: '/dashboard/timeline', icon: History, exact: true },
-  { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
-  { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
+  // { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
+  // { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
 ]
 
@@ -278,7 +278,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Language Switcher -->
-          <div class="hidden lg:block">
+          <div class="hidden">
             <LanguageSwitcher />
           </div>
 
@@ -294,6 +294,7 @@ onUnmounted(() => {
 
           <!-- Updates button -->
           <NuxtLink
+            v-if="false"
             :to="$localePath('/dashboard/updates')"
             class="hidden sm:flex items-center justify-center size-8 rounded-lg transition-all duration-200 no-underline"
             :class="isActiveRoute('/dashboard/updates', false)

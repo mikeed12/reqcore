@@ -12,6 +12,8 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
+const { allowed: canRequestOrg } = usePermission({ organization: ['update'] })
+
 const { orgs, isOrgsLoading, switchOrg, createOrg, activeOrg } = useCurrentOrg()
 const { acceptInviteLink } = useInviteLinks()
 const localePath = useLocalePath()
@@ -318,7 +320,7 @@ async function handleSubmitJoinRequest() {
     </div>
 
     <!-- Invite code input -->
-    <div class="rounded-lg border border-surface-200 dark:border-surface-800 p-4 bg-white dark:bg-surface-800/50">
+    <div v-if="canRequestOrg" class="rounded-lg border border-surface-200 dark:border-surface-800 p-4 bg-white dark:bg-surface-800/50">
       <div class="flex items-center gap-2 mb-3">
         <Link2 class="size-4 text-brand-600 dark:text-brand-400" />
         <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-100">Have an invite link?</h3>
