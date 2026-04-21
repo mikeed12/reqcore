@@ -195,7 +195,7 @@ function formatDate(dateStr: string) {
                 <MapPin class="size-3.5" />
                 {{ j.location }}
               </span>
-              <span class="text-surface-400">
+              <span v-if="false" class="text-surface-400">
                 Posted {{ formatDate(j.createdAt) }}
               </span>
             </div>

@@ -291,7 +291,7 @@ function formatSalary(min?: number | null, max?: number | null, currency?: strin
             {{ job.title }}
           </h1>
 
-          <p class="inline-flex items-center gap-1.5 text-xs text-surface-400">
+          <p v-if="false" class="inline-flex items-center gap-1.5 text-xs text-surface-400">
             <Calendar class="size-3.5" />
             Posted {{ formatDate(job.createdAt) }}
           </p>

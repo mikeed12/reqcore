@@ -82,6 +82,7 @@ function validate(): boolean {
 
   if (!form.value.firstName.trim()) errors.value.firstName = 'First name is required'
   if (!form.value.lastName.trim()) errors.value.lastName = 'Last name is required'
+  if (!form.value.phone.trim()) errors.value.phone = 'Phone is required'
   if (!form.value.email.trim()) {
     errors.value.email = 'Email is required'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
@@ -430,7 +431,7 @@ const typeLabels: Record<string, string> = {
             <!-- Phone -->
             <div>
               <label for="phone" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">
-                Phone <span class="text-surface-400 font-normal text-xs">(optional)</span>
+                Phone <span class="text-danger-500">*</span> <span v-if="false" class="text-surface-400 font-normal text-xs">(optional)</span>
               </label>
               <input
                 id="phone"
@@ -439,7 +440,12 @@ const typeLabels: Record<string, string> = {
                 placeholder="+1 (555) 123-4567"
                 autocomplete="tel"
                 class="w-full rounded-xl border border-surface-300 dark:border-surface-700 px-3.5 py-2.5 text-sm text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                :class="errors.phone ? 'border-danger-300 dark:border-danger-700 focus:ring-danger-500 focus:border-danger-500' : 'border-surface-300 dark:border-surface-700'"
               />
+              <p v-if="errors.phone" class="mt-1.5 flex items-center gap-1 text-xs text-danger-600 dark:text-danger-400">
+                <svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {{ errors.phone }}
+              </p>
             </div>
 
             <!-- Resume / Cover Letter uploads -->
