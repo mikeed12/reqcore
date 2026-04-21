@@ -180,7 +180,7 @@ onUnmounted(() => {
             <span class="text-[15px] font-bold text-surface-900 dark:text-surface-100 hidden sm:block tracking-tight">Reqcore</span>
           </a>
 
-          <p v-if="activeOrg" class="text-sm text-surface-400 dark:text-surface-500 mt-1">
+          <p v-if="activeOrg" class="text-nowrap text-sm text-surface-400 dark:text-surface-500 mt-1">
             {{ activeOrg.name }}
           </p>
 
@@ -275,7 +275,7 @@ onUnmounted(() => {
           <!-- New Job button (desktop) -->
           <NuxtLink
             :to="$localePath('/dashboard/jobs/new')"
-            class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm shadow-brand-600/20 hover:bg-brand-700 hover:shadow-md hover:shadow-brand-600/25 active:bg-brand-800 transition-all duration-200 no-underline"
+            class="hidden text-nowrap sm:inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm shadow-brand-600/20 hover:bg-brand-700 hover:shadow-md hover:shadow-brand-600/25 active:bg-brand-800 transition-all duration-200 no-underline"
           >
             <Plus class="size-3.5" />
             New Job
