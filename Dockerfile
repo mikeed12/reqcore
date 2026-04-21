@@ -30,7 +30,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # PostgreSQL client tools for database backup via /api/updates/backup
-RUN apk add --no-cache postgresql16-client
+RUN apk add --no-cache postgresql16-client curl
 
 RUN addgroup -S reqcore && adduser -S reqcore -G reqcore
 
