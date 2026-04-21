@@ -8,6 +8,8 @@ import {
   Cloud, Server, Sparkles, Radio, History,
 } from 'lucide-vue-next'
 
+import Dialer from "~/modules/softphone/components/Dialer.vue";
+
 const route = useRoute()
 const localePath = useLocalePath()
 const getRouteBaseName = useRouteBaseName()
@@ -262,6 +264,8 @@ onUnmounted(() => {
               </div>
             </Transition>
           </div>
+
+          <Dialer />
 
           <!-- New Job button (desktop) -->
           <NuxtLink
