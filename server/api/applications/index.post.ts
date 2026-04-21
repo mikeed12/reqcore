@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm'
 import { application, candidate, job } from '../../database/schema'
 import { createApplicationSchema } from '../../utils/schemas/application'
+import {syncToCrm} from "#server/utils/crm";
 
 /**
  * POST /api/applications
@@ -78,6 +79,15 @@ export default defineEventHandler(async (event) => {
     resourceType: 'application',
     resourceId: created.id,
     metadata: { candidateId: body.candidateId, jobId: body.jobId },
+  })
+
+  syncToCrm('applications', {
+    id: created.id,
+    candidateId: created.candidateId,
+    jobId: created.jobId,
+    status: created.status,
+    notes: created.notes,
+    createdAt: created.createdAt,
   })
 
   setResponseStatus(event, 201)

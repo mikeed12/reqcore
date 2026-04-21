@@ -122,6 +122,10 @@ export const envSchema = z
     AUTH_MICROSOFT_CLIENT_SECRET: emptyToUndefined.pipe(z.string().min(1)).optional(),
     /** Microsoft Entra ID Tenant ID. Defaults to 'common' (multi-tenant). */
     AUTH_MICROSOFT_TENANT_ID: emptyToUndefined.pipe(z.string().min(1)).optional().default('common'),
+    /** Base URL of the legacy CRM API (e.g. https://old-crm.example.com/api). When set, new candidates, applications, and jobs are synced automatically. */
+    CRM_BASE_URL: emptyToUndefined.pipe(z.string().url()).optional(),
+    /** API key sent as Authorization: Bearer to the legacy CRM. Required when CRM_BASE_URL is set. */
+    CRM_API_KEY: emptyToUndefined.pipe(z.string().min(1)).optional(),
     /** Shared secret for authenticating cron/scheduled job requests (e.g., webhook renewal). */
     CRON_SECRET: emptyToUndefined.pipe(z.string().min(16)).optional(),
     /** OIDC client ID for SSO authentication (e.g., Keycloak, Authentik, Authelia, Okta). */

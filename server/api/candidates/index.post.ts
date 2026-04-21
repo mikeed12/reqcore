@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm'
 import { candidate } from '../../database/schema'
 import { createCandidateSchema } from '../../utils/schemas/candidate'
+import {syncToCrm} from "#server/utils/crm";
 
 export default defineEventHandler(async (event) => {
   const session = await requirePermission(event, { candidate: ['create'] })
@@ -51,6 +52,15 @@ export default defineEventHandler(async (event) => {
     resourceType: 'candidate',
     resourceId: created.id,
     metadata: { name: `${created.firstName} ${created.lastName}` },
+  })
+
+  syncToCrm('candidates', {
+    id: created.id,
+    firstName: created.firstName,
+    lastName: created.lastName,
+    email: created.email,
+    phone: created.phone,
+    createdAt: created.createdAt,
   })
 
   trackEvent(event, session, 'candidate created', {
