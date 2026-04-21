@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { useDialer } from '@/composables/useDialer'
+import { useDialer } from '../composables/useDialer'
 import DialerActions from './DialerActions.vue'
 import DialerExtensionSelect from './DialerExtensionSelect.vue'
 import DialerFooter from './DialerFooter.vue'
