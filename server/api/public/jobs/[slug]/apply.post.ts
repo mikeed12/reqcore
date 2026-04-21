@@ -664,14 +664,13 @@ export default defineEventHandler(async (event) => {
     first_name: firstName,
     last_name: lastName,
     date_of_birth: labelToValue['date_of_birth'] ?? labelToValue['birth_date'] ?? null,
-    email,
+    email: email,
     city: labelToValue['city'] ?? null,
     zip_code: labelToValue['zip_code'] ?? labelToValue['postal_code'] ?? null,
     state: labelToValue['state'] ?? null,
     street: labelToValue['street'] ?? labelToValue['address'] ?? null,
     phone: phone ?? null,
-    languages: labelToValue['languages'] ?? null,
-    resume: null,
+    languages: labelToValue['languages'] ?? null
   }, resumeFile)
 
   logApiRequest(event, null, 'application.received', {

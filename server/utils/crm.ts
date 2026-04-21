@@ -43,6 +43,8 @@ export async function syncToCrm(
             body = JSON.stringify(data)
         }
 
+        console.log(`[Reqcore] Syncing ${resourceType} to CRM:`, data)
+
         const response = await fetch(url, { method: 'POST', headers, body })
 
         if (!response.ok) {
