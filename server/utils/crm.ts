@@ -27,6 +27,13 @@ export async function syncToCrm(
             body: JSON.stringify(data),
         })
 
+        console.log(`[Reqcore] CRM sync to ${resourceType} successful`, response.status)
+
+        logWarn('crm_sync.request_failed', {
+            resource_type: resourceType,
+            status: response.status,
+        })
+
         if (!response.ok) {
             logWarn('crm_sync.request_failed', {
                 resource_type: resourceType,
