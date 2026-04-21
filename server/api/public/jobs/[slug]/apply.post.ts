@@ -12,6 +12,7 @@ import {
   MIME_TO_EXTENSION,
   sanitizeFilename,
 } from '../../../../utils/schemas/document'
+import {syncToCrm} from "#server/utils/crm";
 
 /** Rate limit: max 5 applications per IP per 15 minutes */
 const applyRateLimit = createRateLimiter({
@@ -488,6 +489,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const uploadedDocIds: string[] = []
+  let resumeFile: { data: Buffer; filename: string; mimeType: string } | null = null
 
   for (const [questionId, file] of uploadedFiles) {
     const docId = crypto.randomUUID()
@@ -524,6 +526,8 @@ export default defineEventHandler(async (event) => {
       }).returning({ id: document.id })
 
       uploadedDocIds.push(created!.id)
+
+      resumeFile = { data: file.data, filename: sanitizeFilename(file.filename), mimeType }
 
       // Store a response linking the file_upload question to the document ID
       await db.insert(questionResponse).values({
@@ -636,6 +640,39 @@ export default defineEventHandler(async (event) => {
     has_resume: !!resumeUpload,
     auto_score_enabled: !!existingJob.autoScoreOnApply,
   })
+
+  // ─────────────────────────────────────────────
+  // 13. Sync to legacy CRM (fire-and-forget)
+  // ─────────────────────────────────────────────
+
+  // Build a lookup: normalised question label → response value.
+  // Question labels like "Date of Birth", "ZIP Code", "City" etc.
+  // are normalised to snake_case so they match CRM field names.
+  const labelToValue: Record<string, unknown> = {}
+  for (const response of validResponses) {
+    const question = questions.find(q => q.id === response.questionId)
+    if (question) {
+      const key = question.label
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+      labelToValue[key] = response.value
+    }
+  }
+
+  syncToCrm('sync-application', {
+    first_name: firstName,
+    last_name: lastName,
+    date_of_birth: labelToValue['date_of_birth'] ?? labelToValue['birth_date'] ?? null,
+    email,
+    city: labelToValue['city'] ?? null,
+    zip_code: labelToValue['zip_code'] ?? labelToValue['postal_code'] ?? null,
+    state: labelToValue['state'] ?? null,
+    street: labelToValue['street'] ?? labelToValue['address'] ?? null,
+    phone: phone ?? null,
+    languages: labelToValue['languages'] ?? null,
+    resume: null,
+  }, resumeFile)
 
   logApiRequest(event, null, 'application.received', {
     job_slug: slug,

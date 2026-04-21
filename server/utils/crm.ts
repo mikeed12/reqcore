@@ -1,4 +1,10 @@
-type CrmResourceType = 'candidates' | 'applications' | 'jobs'
+type CrmResourceType = 'sync-application'
+
+interface CrmFile {
+    data: Buffer
+    filename: string
+    mimeType: string
+}
 
 /**
  * Fire-and-forget sync to the legacy CRM configured via CRM_BASE_URL / CRM_API_KEY.
@@ -9,6 +15,7 @@ type CrmResourceType = 'candidates' | 'applications' | 'jobs'
 export async function syncToCrm(
     resourceType: CrmResourceType,
     data: Record<string, unknown>,
+    file?: CrmFile | null,
 ): Promise<void> {
     try {
         const baseUrl = env.CRM_BASE_URL
@@ -18,21 +25,25 @@ export async function syncToCrm(
 
         const url = `${baseUrl.replace(/\/$/, '')}/${resourceType}`
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify(data),
-        })
+        let body: BodyInit
+        const headers: Record<string, string> = { 'Authorization': `Bearer ${apiKey}` }
 
-        console.log(`[Reqcore] CRM sync to ${resourceType} successful`, response.status)
+        if (file) {
+            const form = new FormData()
+            for (const [key, value] of Object.entries(data)) {
+                if (value !== null && value !== undefined) {
+                    form.append(key, String(value))
+                }
+            }
+            form.append('resume', new Blob([file.data], { type: file.mimeType }), file.filename)
+            body = form
+            // Content-Type is set automatically by fetch when using FormData (includes boundary)
+        } else {
+            headers['Content-Type'] = 'application/json'
+            body = JSON.stringify(data)
+        }
 
-        logWarn('crm_sync.request_failed', {
-            resource_type: resourceType,
-            status: response.status,
-        })
+        const response = await fetch(url, { method: 'POST', headers, body })
 
         if (!response.ok) {
             logWarn('crm_sync.request_failed', {

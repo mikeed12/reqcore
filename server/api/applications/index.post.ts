@@ -81,15 +81,6 @@ export default defineEventHandler(async (event) => {
     metadata: { candidateId: body.candidateId, jobId: body.jobId },
   })
 
-  syncToCrm('applications', {
-    id: created.id,
-    candidateId: created.candidateId,
-    jobId: created.jobId,
-    status: created.status,
-    notes: created.notes,
-    createdAt: created.createdAt,
-  })
-
   setResponseStatus(event, 201)
   return created
 })

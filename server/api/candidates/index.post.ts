@@ -54,15 +54,6 @@ export default defineEventHandler(async (event) => {
     metadata: { name: `${created.firstName} ${created.lastName}` },
   })
 
-  syncToCrm('candidates', {
-    id: created.id,
-    firstName: created.firstName,
-    lastName: created.lastName,
-    email: created.email,
-    phone: created.phone,
-    createdAt: created.createdAt,
-  })
-
   trackEvent(event, session, 'candidate created', {
     candidate_id: created.id,
   })
