@@ -512,6 +512,37 @@ function formatFileSize(bytes: number | null | undefined): string {
 
         <!-- Documents tab -->
         <div v-if="activeTab === 'documents'">
+          <!-- ── KYC Identity Verification strip ── -->
+          <div class="mb-4 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/60 p-4">
+            <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-3">Identity Verification</p>
+            <div class="grid grid-cols-3 gap-3">
+              <template v-for="kycStep in ['front', 'back', 'selfie'] as const" :key="kycStep">
+                <a
+                  :href="`/api/candidates/${candidate.id}/kyc/${kycStep}`"
+                  target="_blank"
+                  rel="noopener"
+                  class="group flex flex-col items-center gap-1.5 cursor-pointer"
+                >
+                  <div class="w-full aspect-[4/3] rounded-lg overflow-hidden border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 flex items-center justify-center relative">
+                    <img
+                      :src="`/api/candidates/${candidate.id}/kyc/${kycStep}`"
+                      :alt="kycStep"
+                      class="w-full h-full object-cover transition-opacity group-hover:opacity-80"
+                      @error="(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }"
+                    />
+                    <div class="hidden absolute inset-0 flex flex-col items-center justify-center gap-1 text-surface-400">
+                      <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 18h16.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="text-[10px]">Not uploaded</span>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-medium text-surface-500 dark:text-surface-400 capitalize">{{ kycStep === 'front' ? 'Front of ID' : kycStep === 'back' ? 'Back of ID' : 'Selfie' }}</span>
+                </a>
+              </template>
+            </div>
+          </div>
+
           <!-- Hidden file input -->
           <input
             ref="fileInput"

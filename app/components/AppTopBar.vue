@@ -6,7 +6,10 @@ import {
   ChevronDown, Menu, X, Users, ChevronLeft,
   LayoutDashboard, Calendar, ArrowUpCircle,
   Cloud, Server, Sparkles, Radio, History,
+  MessageSquare, LifeBuoy,
 } from 'lucide-vue-next'
+
+const { isOpen: convPanelOpen, totalUnread: convTotalUnread, toggle: toggleConvPanel } = useConversationsPanel()
 
 import Dialer from "~/modules/softphone/components/Dialer.vue";
 
@@ -128,6 +131,7 @@ const mainNav: Array<{ label: string; to: string; icon: typeof Briefcase; exact:
   { label: 'Applications', to: '/dashboard/applications', icon: FileText, exact: false },
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Timeline', to: '/dashboard/timeline', icon: History, exact: true },
+  { label: 'Tickets', to: '/dashboard/tickets', icon: LifeBuoy, exact: false },
   // { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
   // { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
@@ -269,6 +273,24 @@ onUnmounted(() => {
               </div>
             </Transition>
           </div>
+
+          <!-- Conversations panel toggle -->
+          <button
+            class="relative flex items-center justify-center size-8 rounded-lg transition-all duration-200 cursor-pointer border-0 bg-transparent"
+            :class="convPanelOpen
+              ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40'
+              : 'text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'"
+            title="Conversations"
+            @click="toggleConvPanel()"
+          >
+            <MessageSquare class="size-4" />
+            <span
+              v-if="convTotalUnread > 0"
+              class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[14px] h-3.5 rounded-full bg-brand-600 text-white text-[9px] font-bold px-0.5 leading-none"
+            >
+              {{ convTotalUnread > 99 ? '99+' : convTotalUnread }}
+            </span>
+          </button>
 
           <Dialer />
 

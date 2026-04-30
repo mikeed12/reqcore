@@ -606,6 +606,93 @@ export const analysisRun = pgTable('analysis_run', {
 ]))
 
 // ─────────────────────────────────────────────
+// Candidate Contracts
+// ─────────────────────────────────────────────
+
+export const candidateContractTypeEnum = pgEnum('candidate_contract_type', [
+  'employment', 'freelance', 'consulting', 'service', 'nda', 'other',
+])
+
+/**
+ * Employment / service contracts attached to a candidate, managed by the
+ * candidate via the cabinet portal. Similar to address records.
+ */
+export const candidateContract = pgTable('candidate_contract', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  candidateId: text('candidate_id').notNull().references(() => candidate.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  employerName: text('employer_name').notNull(),
+  contractType: candidateContractTypeEnum('contract_type').notNull().default('employment'),
+  startDate: text('start_date'),
+  endDate: text('end_date'),
+  salary: text('salary'),
+  currency: text('currency').default('USD'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  index('candidate_contract_candidate_id_idx').on(t.candidateId),
+  index('candidate_contract_organization_id_idx').on(t.organizationId),
+]))
+
+// ─────────────────────────────────────────────
+// Messenger
+// ─────────────────────────────────────────────
+
+export const conversationTypeEnum = pgEnum('conversation_type', ['task', 'support', 'chat'])
+export const conversationStatusEnum = pgEnum('conversation_status', ['open', 'closed'])
+export const messageSenderTypeEnum = pgEnum('message_sender_type', ['candidate', 'admin', 'system'])
+
+/**
+ * A threaded conversation between a candidate and the org's team.
+ * type:    task     = admin-initiated task/action item for the candidate
+ *          support  = candidate-initiated support ticket
+ *          chat     = general / informal channel
+ * `applicationId` optionally links a conversation to a specific application.
+ */
+export const conversation = pgTable('conversation', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  candidateId: text('candidate_id').notNull().references(() => candidate.id, { onDelete: 'cascade' }),
+  type: conversationTypeEnum('type').notNull().default('chat'),
+  title: text('title').notNull(),
+  status: conversationStatusEnum('status').notNull().default('open'),
+  /** Optional link to an application (useful for task-type conversations). */
+  applicationId: text('application_id').references(() => application.id, { onDelete: 'set null' }),
+  /** Free-form metadata (e.g. { draftId, dueDate } for task threads). */
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ([
+  index('conversation_organization_id_idx').on(t.organizationId),
+  index('conversation_candidate_id_idx').on(t.candidateId),
+  index('conversation_type_idx').on(t.type),
+  index('conversation_status_idx').on(t.status),
+  index('conversation_updated_at_idx').on(t.updatedAt),
+]))
+
+/**
+ * A single message within a conversation.
+ * `senderType` identifies whether the author is the candidate, an admin user, or a system event.
+ * `senderId`   is the candidateId (candidate) or userId (admin) — null for system messages.
+ * `readAt`     is set when the *other* party first views the message.
+ */
+export const message = pgTable('message', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  conversationId: text('conversation_id').notNull().references(() => conversation.id, { onDelete: 'cascade' }),
+  senderType: messageSenderTypeEnum('sender_type').notNull(),
+  senderId: text('sender_id'),
+  senderName: text('sender_name').notNull(),
+  content: text('content').notNull(),
+  readAt: timestamp('read_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => ([
+  index('message_conversation_id_idx').on(t.conversationId),
+  index('message_created_at_idx').on(t.createdAt),
+]))
+
+// ─────────────────────────────────────────────
 // Relations
 // ─────────────────────────────────────────────
 
@@ -627,6 +714,13 @@ export const candidateRelations = relations(candidate, ({ one, many }) => ({
   applications: many(application),
   addresses: many(address),
   documents: many(document),
+  conversations: many(conversation),
+  contracts: many(candidateContract),
+}))
+
+export const candidateContractRelations = relations(candidateContract, ({ one }) => ({
+  organization: one(organization, { fields: [candidateContract.organizationId], references: [organization.id] }),
+  candidate: one(candidate, { fields: [candidateContract.candidateId], references: [candidate.id] }),
 }))
 
 export const applicationRelations = relations(application, ({ one, many }) => ({
@@ -727,4 +821,17 @@ export const applicationSourceRelations = relations(applicationSource, ({ one })
   organization: one(organization, { fields: [applicationSource.organizationId], references: [organization.id] }),
   application: one(application, { fields: [applicationSource.applicationId], references: [application.id] }),
   trackingLink: one(trackingLink, { fields: [applicationSource.trackingLinkId], references: [trackingLink.id] }),
+}))
+
+// ─── Messenger Relations ───────────────────────────────────────────
+
+export const conversationRelations = relations(conversation, ({ one, many }) => ({
+  organization: one(organization, { fields: [conversation.organizationId], references: [organization.id] }),
+  candidate: one(candidate, { fields: [conversation.candidateId], references: [candidate.id] }),
+  application: one(application, { fields: [conversation.applicationId], references: [application.id] }),
+  messages: many(message),
+}))
+
+export const messageRelations = relations(message, ({ one }) => ({
+  conversation: one(conversation, { fields: [message.conversationId], references: [conversation.id] }),
 }))

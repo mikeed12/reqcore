@@ -718,3 +718,116 @@ export async function sendAddressRequestEmail(data: {
     throw new Error(error.message)
   }
 }
+
+// ─────────────────────────────────────────────
+// Cabinet magic link email
+// ─────────────────────────────────────────────
+
+/**
+ * Send a cabinet magic link to a candidate.
+ * Falls back to console.info when RESEND_API_KEY is not set.
+ */
+export async function sendCabinetMagicLinkEmail(data: {
+  email: string
+  url: string
+}): Promise<void> {
+  const resend = getResendClient()
+
+  if (!resend) {
+    console.info(`[Reqcore] Cabinet magic link → ${data.email} | Link: ${data.url}`)
+    return
+  }
+
+  const fromEmail = env.RESEND_FROM_EMAIL
+
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: [data.email],
+      subject: 'Your sign-in link — Reqcore Cabinet',
+      html: buildCabinetMagicLinkHtml({ url: data.url }),
+      text: buildCabinetMagicLinkText({ url: data.url }),
+      tags: [{ name: 'category', value: 'cabinet-magic-link' }],
+    })
+
+    if (error) {
+      logError('email.cabinet_magic_link_send_failed', {
+        provider: 'resend',
+        error_message: error.message,
+      })
+    }
+  }
+  catch (err) {
+    logError('email.cabinet_magic_link_send_failed', {
+      provider: 'resend',
+      error_message: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
+
+function buildCabinetMagicLinkHtml(params: { url: string }): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
+          <tr>
+            <td style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid #f4f4f5;">
+              <h1 style="margin:0;font-size:20px;font-weight:600;color:#09090b;">Reqcore</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#09090b;">Your sign-in link</h2>
+              <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#3f3f46;">
+                Click the button below to access your candidate cabinet. This link expires in 15 minutes and can only be used once.
+              </p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="${escapeHtml(params.url)}" target="_blank" rel="noopener noreferrer"
+                       style="display:inline-block;padding:12px 32px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;border-radius:8px;line-height:1;">
+                      Access My Cabinet
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#71717a;">
+                If you didn't request this link, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px;text-align:center;border-top:1px solid #f4f4f5;background-color:#fafafa;">
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">Sent by Reqcore &mdash; Open-source applicant tracking</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+function buildCabinetMagicLinkText(params: { url: string }): string {
+  return [
+    'Your sign-in link for Reqcore Cabinet',
+    '',
+    'Click the link below to access your candidate cabinet:',
+    params.url,
+    '',
+    'This link expires in 15 minutes and can only be used once.',
+    'If you didn\'t request this, you can safely ignore this email.',
+    '',
+    '— Reqcore',
+  ].join('\n')
+}
+

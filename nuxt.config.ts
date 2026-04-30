@@ -244,7 +244,12 @@ export default defineNuxtConfig({
     ...localizedPublicRouteRules,
   },
 
+
+
   nitro: {
+    experimental: {
+      websocket: true,
+    },
     routeRules: {
       "/**": {
         headers: {
