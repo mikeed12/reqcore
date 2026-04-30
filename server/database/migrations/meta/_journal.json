@@ -148,6 +148,13 @@
       "when": 1776076881696,
       "tag": "0020_goofy_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1777518726686,
+      "tag": "0021_old_forge",
+      "breakpoints": true
     }
   ]
 }

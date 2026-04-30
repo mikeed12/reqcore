@@ -14,16 +14,16 @@ const jobId = route.params.id as string
 // ─────────────────────────────────────────────
 
 const { data: jobData, status: jobFetchStatus, error: jobError } = useFetch(
-  () => `/api/jobs/${jobId}`,
-  {
-    key: `candidates-job-${jobId}`,
-    headers: useRequestHeaders(['cookie']),
-  },
+    () => `/api/jobs/${jobId}`,
+    {
+      key: `candidates-job-${jobId}`,
+      headers: useRequestHeaders(['cookie']),
+    },
 )
 
 useSeoMeta({
   title: computed(() =>
-    jobData.value ? `Table — ${jobData.value.title} — Reqcore` : 'Table — Reqcore',
+      jobData.value ? `Table — ${jobData.value.title} — Reqcore` : 'Table — Reqcore',
   ),
 })
 
@@ -47,7 +47,7 @@ const visibleCols = useState(`cand-visible-cols-${jobId}`, () => ({
 
 // Only send a single status to the API when exactly one is selected; otherwise fetch all and filter client-side
 const apiStatusFilter = computed(() =>
-  selectedStatuses.value.length === 1 ? selectedStatuses.value[0] : undefined,
+    selectedStatuses.value.length === 1 ? selectedStatuses.value[0] : undefined,
 )
 
 const { data: appData, status: appFetchStatus, error: appError, refresh: refreshApps } = useFetch('/api/applications', {
@@ -154,33 +154,33 @@ function toggleSort(key: SortKey) {
 
 const sorted = computed(() => {
   return [...applications.value]
-    .filter((app) => {
-      if (selectedStatuses.value.length > 1 && !selectedStatuses.value.includes(app.status as Status)) return false
-      if (scoreMin.value != null && (app.score ?? 0) < scoreMin.value) return false
-      if (scoreMax.value != null && (app.score ?? 0) > scoreMax.value) return false
-      return true
-    })
-    .sort((a, b) => {
-      let cmp = 0
-      switch (sortKey.value) {
-        case 'name':
-          cmp = `${a.candidateFirstName} ${a.candidateLastName}`.localeCompare(`${b.candidateFirstName} ${b.candidateLastName}`)
-          break
-        case 'email':
-          cmp = (a.candidateEmail ?? '').localeCompare(b.candidateEmail ?? '')
-          break
-        case 'score':
-          cmp = (a.score ?? -1) - (b.score ?? -1)
-          break
-        case 'status':
-          cmp = a.status.localeCompare(b.status)
-          break
-        case 'createdAt':
-          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          break
-      }
-      return sortDir.value === 'asc' ? cmp : -cmp
-    })
+      .filter((app) => {
+        if (selectedStatuses.value.length > 1 && !selectedStatuses.value.includes(app.status as Status)) return false
+        if (scoreMin.value != null && (app.score ?? 0) < scoreMin.value) return false
+        if (scoreMax.value != null && (app.score ?? 0) > scoreMax.value) return false
+        return true
+      })
+      .sort((a, b) => {
+        let cmp = 0
+        switch (sortKey.value) {
+          case 'name':
+            cmp = `${a.candidateFirstName} ${a.candidateLastName}`.localeCompare(`${b.candidateFirstName} ${b.candidateLastName}`)
+            break
+          case 'email':
+            cmp = (a.candidateEmail ?? '').localeCompare(b.candidateEmail ?? '')
+            break
+          case 'score':
+            cmp = (a.score ?? -1) - (b.score ?? -1)
+            break
+          case 'status':
+            cmp = a.status.localeCompare(b.status)
+            break
+          case 'createdAt':
+            cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            break
+        }
+        return sortDir.value === 'asc' ? cmp : -cmp
+      })
 })
 
 // ─────────────────────────────────────────────
@@ -240,8 +240,8 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
 
     <!-- Error -->
     <div
-      v-else-if="jobError || appError"
-      class="rounded-xl border border-danger-200/80 bg-danger-50 p-5 text-sm text-danger-700 dark:border-danger-800/60 dark:bg-danger-950/40 dark:text-danger-300"
+        v-else-if="jobError || appError"
+        class="rounded-xl border border-danger-200/80 bg-danger-50 p-5 text-sm text-danger-700 dark:border-danger-800/60 dark:bg-danger-950/40 dark:text-danger-300"
     >
       {{ jobError ? 'Job not found or failed to load.' : 'Failed to load candidates.' }}
       <NuxtLink :to="$localePath('/dashboard')" class="ml-1 font-medium underline hover:no-underline">Back to Jobs</NuxtLink>
@@ -253,14 +253,14 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
         <!-- Column / filter picker -->
         <div ref="panelRef" class="relative">
           <button
-            class="inline-flex items-center gap-2 rounded-lg border border-surface-200 dark:border-surface-700/80 bg-white dark:bg-surface-900 px-3 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 hover:border-surface-300 dark:hover:bg-surface-800 dark:hover:border-surface-600 transition-all duration-150 shadow-sm"
-            @click="panelOpen = !panelOpen"
+              class="inline-flex items-center gap-2 rounded-lg border border-surface-200 dark:border-surface-700/80 bg-white dark:bg-surface-900 px-3 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 hover:border-surface-300 dark:hover:bg-surface-800 dark:hover:border-surface-600 transition-all duration-150 shadow-sm"
+              @click="panelOpen = !panelOpen"
           >
             <SlidersHorizontal class="size-4" />
             View
             <span
-              v-if="activeFilterCount > 0"
-              class="inline-flex items-center justify-center size-4 rounded-full bg-brand-500 text-white text-[10px] font-semibold"
+                v-if="activeFilterCount > 0"
+                class="inline-flex items-center justify-center size-4 rounded-full bg-brand-500 text-white text-[10px] font-semibold"
             >
               {{ activeFilterCount }}
             </span>
@@ -268,27 +268,27 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
 
           <!-- Dropdown panel -->
           <div
-            v-if="panelOpen"
-            class="absolute left-0 top-full mt-2 z-20 w-72 rounded-xl border border-surface-200/80 dark:border-surface-700/80 bg-white dark:bg-surface-900 shadow-xl shadow-surface-900/5 dark:shadow-black/20 p-4 space-y-5"
+              v-if="panelOpen"
+              class="absolute left-0 top-full mt-2 z-20 w-72 rounded-xl border border-surface-200/80 dark:border-surface-700/80 bg-white dark:bg-surface-900 shadow-xl shadow-surface-900/5 dark:shadow-black/20 p-4 space-y-5"
           >
             <!-- Columns -->
             <div>
               <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-2">Columns</p>
               <div class="space-y-1.5">
                 <label
-                  v-for="col in ([
+                    v-for="col in ([
                     { key: 'email', label: 'Email' },
                     { key: 'score', label: 'Score' },
                     { key: 'status', label: 'Status' },
                     { key: 'createdAt', label: 'Applied' },
                   ] as const)"
-                  :key="col.key"
-                  class="flex items-center gap-2.5 cursor-pointer select-none group"
+                    :key="col.key"
+                    class="flex items-center gap-2.5 cursor-pointer select-none group"
                 >
                   <input type="checkbox" class="sr-only" :checked="visibleCols[col.key]" @change="visibleCols[col.key] = !visibleCols[col.key]" />
                   <span
-                    class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors"
-                    :class="visibleCols[col.key]
+                      class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors"
+                      :class="visibleCols[col.key]
                       ? 'bg-brand-500 border-brand-500'
                       : 'bg-white dark:bg-surface-800 border-surface-300 dark:border-surface-600'"
                   >
@@ -308,22 +308,22 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
               <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-2">Filter by Status</p>
               <div class="space-y-1.5">
                 <label
-                  v-for="s in STATUS_OPTIONS"
-                  :key="s"
-                  class="flex items-center gap-2.5 cursor-pointer select-none group"
+                    v-for="s in STATUS_OPTIONS"
+                    :key="s"
+                    class="flex items-center gap-2.5 cursor-pointer select-none group"
                 >
                   <input type="checkbox" class="sr-only" :checked="selectedStatuses.includes(s)" @change="toggleStatus(s)" />
                   <span
-                    class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors"
-                    :class="selectedStatuses.includes(s)
+                      class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors"
+                      :class="selectedStatuses.includes(s)
                       ? 'bg-brand-500 border-brand-500'
                       : 'bg-white dark:bg-surface-800 border-surface-300 dark:border-surface-600'"
                   >
                     <Check v-if="selectedStatuses.includes(s)" class="size-3 text-white" :stroke-width="3" />
                   </span>
                   <span
-                  class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset"
-                    :class="statusBadgeClasses[s]"
+                      class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset"
+                      :class="statusBadgeClasses[s]"
                   >
                     {{ statusLabels[s] }}
                   </span>
@@ -338,30 +338,30 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
               <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-2">Score Range</p>
               <div class="flex items-center gap-2">
                 <input
-                  v-model.number="scoreMin"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Min"
-                  class="w-full rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-1.5 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    v-model.number="scoreMin"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="Min"
+                    class="w-full rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-1.5 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <span class="text-surface-400 text-xs shrink-0">to</span>
                 <input
-                  v-model.number="scoreMax"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Max"
-                  class="w-full rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-1.5 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    v-model.number="scoreMax"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="Max"
+                    class="w-full rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-1.5 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
 
             <!-- Clear -->
             <button
-              v-if="activeFilterCount > 0"
-              class="inline-flex items-center gap-1.5 text-xs text-surface-400 hover:text-danger-600 transition-colors"
-              @click="clearFilters"
+                v-if="activeFilterCount > 0"
+                class="inline-flex items-center gap-1.5 text-xs text-surface-400 hover:text-danger-600 transition-colors"
+                @click="clearFilters"
             >
               <X class="size-3" />
               Clear filters
@@ -372,20 +372,20 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
         <!-- Active filter pills -->
         <template v-if="selectedStatuses.length > 0">
           <span
-            v-for="s in selectedStatuses"
-            :key="s"
-            class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium capitalize cursor-pointer"
-            :class="statusBadgeClasses[s]"
-            @click="toggleStatus(s as Status)"
+              v-for="s in selectedStatuses"
+              :key="s"
+              class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium capitalize cursor-pointer"
+              :class="statusBadgeClasses[s]"
+              @click="toggleStatus(s as Status)"
           >
             {{ statusLabels[s] }}
             <X class="size-2.5" />
           </span>
         </template>
         <span
-          v-if="scoreMin != null || scoreMax != null"
-          class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 cursor-pointer"
-          @click="scoreMin = undefined; scoreMax = undefined"
+            v-if="scoreMin != null || scoreMax != null"
+            class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 cursor-pointer"
+            @click="scoreMin = undefined; scoreMax = undefined"
         >
           Score {{ scoreMin ?? '0' }}–{{ scoreMax ?? '100' }}
           <X class="size-2.5" />
@@ -394,8 +394,8 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
 
       <!-- Empty state (no applications at all) -->
       <div
-        v-if="applications.length === 0"
-        class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-900 p-12 text-center shadow-sm shadow-surface-900/[0.03] dark:shadow-none"
+          v-if="applications.length === 0"
+          class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 bg-white dark:bg-surface-900 p-12 text-center shadow-sm shadow-surface-900/[0.03] dark:shadow-none"
       >
         <div class="flex size-14 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800/60 mx-auto mb-3">
           <Users class="size-6 text-surface-400 dark:text-surface-500" />
@@ -410,70 +410,70 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
 
       <!-- Data table -->
       <div
-        v-else
-        class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 overflow-hidden shadow-sm shadow-surface-900/[0.03] dark:shadow-none"
+          v-else
+          class="rounded-xl border border-surface-200/80 dark:border-surface-800/60 overflow-hidden shadow-sm shadow-surface-900/[0.03] dark:shadow-none"
       >
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-surface-200/80 dark:border-surface-800/60 bg-surface-50/80 dark:bg-surface-900">
-                <!-- Name always visible -->
-                <th class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
-                  <button
+            <tr class="border-b border-surface-200/80 dark:border-surface-800/60 bg-surface-50/80 dark:bg-surface-900">
+              <!-- Name always visible -->
+              <th class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
+                <button
                     class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors"
                     @click="toggleSort('name')"
-                  >
-                    Name
-                    <ChevronUp v-if="sortKey === 'name' && sortDir === 'asc'" class="size-3" />
-                    <ChevronDown v-else-if="sortKey === 'name' && sortDir === 'desc'" class="size-3" />
-                    <ChevronsUpDown v-else class="size-3 opacity-40" />
-                  </button>
-                </th>
-                <th v-if="visibleCols.email" class="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
-                  <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('email')">
-                    Email
-                    <ChevronUp v-if="sortKey === 'email' && sortDir === 'asc'" class="size-3" />
-                    <ChevronDown v-else-if="sortKey === 'email' && sortDir === 'desc'" class="size-3" />
-                    <ChevronsUpDown v-else class="size-3 opacity-40" />
-                  </button>
-                </th>
-                <th v-if="visibleCols.score" class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
-                  <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('score')">
-                    Score
-                    <ChevronUp v-if="sortKey === 'score' && sortDir === 'asc'" class="size-3" />
-                    <ChevronDown v-else-if="sortKey === 'score' && sortDir === 'desc'" class="size-3" />
-                    <ChevronsUpDown v-else class="size-3 opacity-40" />
-                  </button>
-                </th>
-                <th v-if="visibleCols.status" class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
-                  <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('status')">
-                    Status
-                    <ChevronUp v-if="sortKey === 'status' && sortDir === 'asc'" class="size-3" />
-                    <ChevronDown v-else-if="sortKey === 'status' && sortDir === 'desc'" class="size-3" />
-                    <ChevronsUpDown v-else class="size-3 opacity-40" />
-                  </button>
-                </th>
-                <th v-if="visibleCols.createdAt" class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
-                  <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('createdAt')">
-                    Applied
-                    <ChevronUp v-if="sortKey === 'createdAt' && sortDir === 'asc'" class="size-3" />
-                    <ChevronDown v-else-if="sortKey === 'createdAt' && sortDir === 'desc'" class="size-3" />
-                    <ChevronsUpDown v-else class="size-3 opacity-40" />
-                  </button>
-                </th>
-              </tr>
+                >
+                  Name
+                  <ChevronUp v-if="sortKey === 'name' && sortDir === 'asc'" class="size-3" />
+                  <ChevronDown v-else-if="sortKey === 'name' && sortDir === 'desc'" class="size-3" />
+                  <ChevronsUpDown v-else class="size-3 opacity-40" />
+                </button>
+              </th>
+              <th v-if="visibleCols.email" class="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
+                <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('email')">
+                  Email
+                  <ChevronUp v-if="sortKey === 'email' && sortDir === 'asc'" class="size-3" />
+                  <ChevronDown v-else-if="sortKey === 'email' && sortDir === 'desc'" class="size-3" />
+                  <ChevronsUpDown v-else class="size-3 opacity-40" />
+                </button>
+              </th>
+              <th v-if="visibleCols.score" class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
+                <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('score')">
+                  Score
+                  <ChevronUp v-if="sortKey === 'score' && sortDir === 'asc'" class="size-3" />
+                  <ChevronDown v-else-if="sortKey === 'score' && sortDir === 'desc'" class="size-3" />
+                  <ChevronsUpDown v-else class="size-3 opacity-40" />
+                </button>
+              </th>
+              <th v-if="visibleCols.status" class="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
+                <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('status')">
+                  Status
+                  <ChevronUp v-if="sortKey === 'status' && sortDir === 'asc'" class="size-3" />
+                  <ChevronDown v-else-if="sortKey === 'status' && sortDir === 'desc'" class="size-3" />
+                  <ChevronsUpDown v-else class="size-3 opacity-40" />
+                </button>
+              </th>
+              <th v-if="visibleCols.createdAt" class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide select-none">
+                <button class="inline-flex items-center gap-1 hover:text-surface-900 dark:hover:text-surface-100 transition-colors" @click="toggleSort('createdAt')">
+                  Applied
+                  <ChevronUp v-if="sortKey === 'createdAt' && sortDir === 'asc'" class="size-3" />
+                  <ChevronDown v-else-if="sortKey === 'createdAt' && sortDir === 'desc'" class="size-3" />
+                  <ChevronsUpDown v-else class="size-3 opacity-40" />
+                </button>
+              </th>
+            </tr>
             </thead>
             <tbody class="divide-y divide-surface-100 dark:divide-surface-800/60 bg-white dark:bg-surface-950">
-              <!-- No results after filtering -->
-              <tr v-if="sorted.length === 0">
-                <td
+            <!-- No results after filtering -->
+            <tr v-if="sorted.length === 0">
+              <td
                   :colspan="1 + Object.values(visibleCols).filter(Boolean).length"
                   class="px-4 py-10 text-center text-sm text-surface-400"
-                >
-                  No candidates match the current filters.
-                </td>
-              </tr>
-              <tr
+              >
+                No candidates match the current filters.
+              </td>
+            </tr>
+            <tr
                 v-for="app in sorted"
                 :key="app.id"
                 class="cursor-pointer transition-all duration-150"
@@ -481,51 +481,51 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
                   ? 'bg-brand-50/70 dark:bg-brand-950/20'
                   : 'hover:bg-surface-50/80 dark:hover:bg-surface-900/60'"
                 @click="selectRow(app.id)"
-              >
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-3">
-                    <div
+            >
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center gap-3">
+                  <div
                       class="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-150"
                       :class="selectedAppId === app.id
                         ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/20 dark:bg-brand-600 dark:shadow-brand-500/10'
                         : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-300'"
-                    >
-                      {{ getCandidateInitials(app.candidateFirstName, app.candidateLastName) }}
-                    </div>
-                    <span class="font-medium text-surface-900 dark:text-surface-100">
+                  >
+                    {{ getCandidateInitials(app.candidateFirstName, app.candidateLastName) }}
+                  </div>
+                  <span class="font-medium text-surface-900 dark:text-surface-100">
                       {{ app.candidateFirstName }} {{ app.candidateLastName }}
                     </span>
-                  </div>
-                </td>
-                <td v-if="visibleCols.email" class="hidden sm:table-cell px-4 py-3 text-surface-600 dark:text-surface-300 max-w-[220px] truncate">
-                  <a
+                </div>
+              </td>
+              <td v-if="visibleCols.email" class="hidden sm:table-cell px-4 py-3 text-surface-600 dark:text-surface-300 max-w-[220px] truncate">
+                <a
                     :href="`mailto:${app.candidateEmail}`"
                     target="_blank"
                     class="hover:text-brand-600 dark:hover:text-brand-400 hover:underline cursor-pointer transition-colors"
-                  >{{ app.candidateEmail }}</a>
-                </td>
-                <td v-if="visibleCols.score" class="px-4 py-3">
+                >{{ app.candidateEmail }}</a>
+              </td>
+              <td v-if="visibleCols.score" class="px-4 py-3">
                   <span
-                    v-if="app.score != null"
-                    class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset"
-                    :class="scoreClass(app.score)"
+                      v-if="app.score != null"
+                      class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset"
+                      :class="scoreClass(app.score)"
                   >
                     {{ app.score }} pts
                   </span>
-                  <span v-else class="text-surface-400 dark:text-surface-500 text-xs">—</span>
-                </td>
-                <td v-if="visibleCols.status" class="px-4 py-3">
+                <span v-else class="text-surface-400 dark:text-surface-500 text-xs">—</span>
+              </td>
+              <td v-if="visibleCols.status" class="px-4 py-3">
                   <span
-                    class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset"
-                    :class="statusBadgeClasses[app.status] ?? 'bg-surface-100 text-surface-600 ring-surface-200'"
+                      class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset"
+                      :class="statusBadgeClasses[app.status] ?? 'bg-surface-100 text-surface-600 ring-surface-200'"
                   >
                     {{ app.status }}
                   </span>
-                </td>
-                <td v-if="visibleCols.createdAt" class="hidden md:table-cell px-4 py-3 text-surface-500 dark:text-surface-400 whitespace-nowrap text-xs font-medium">
-                  <TimelineDateLink :date="app.createdAt">{{ timeAgo(app.createdAt) }}</TimelineDateLink>
-                </td>
-              </tr>
+              </td>
+              <td v-if="visibleCols.createdAt" class="hidden md:table-cell px-4 py-3 text-surface-500 dark:text-surface-400 whitespace-nowrap text-xs font-medium">
+                <TimelineDateLink :date="app.createdAt">{{ timeAgo(app.createdAt) }}</TimelineDateLink>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -541,11 +541,11 @@ const isLoading = computed(() => jobFetchStatus.value === 'pending' || appFetchS
 
     <!-- Detail sidebar -->
     <CandidateDetailSidebar
-      v-if="selectedAppId"
-      :application-id="selectedAppId"
-      :open="sidebarOpen"
-      @close="closeSidebar"
-      @updated="handleSidebarUpdated"
+        v-if="selectedAppId"
+        :application-id="selectedAppId"
+        :open="sidebarOpen"
+        @close="closeSidebar"
+        @updated="handleSidebarUpdated"
     />
   </div>
 </template>

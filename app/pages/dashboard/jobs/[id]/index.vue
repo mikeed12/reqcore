@@ -5,10 +5,11 @@ import {
   UserPlus, Pencil, Trash2, MoreHorizontal, Globe, ChevronDown, X,
   Video, Building2, Code2, UsersRound, Save, Check, MapPin, Users, Plus,
   CheckCircle2, XCircle, AlertTriangle, ArrowUpDown, ListFilter,
-  Maximize2, Minimize2, Brain, Loader2, History,
+  Maximize2, Minimize2, Brain, Loader2, History, Map, AlertCircle, Send
 } from 'lucide-vue-next'
 import { usePreviewReadOnly } from '~/composables/usePreviewReadOnly'
 import { APPLICATION_STATUS_TRANSITIONS, JOB_STATUS_TRANSITIONS, INTERVIEW_STATUS_TRANSITIONS } from '~~/shared/status-transitions'
+import { SYSTEM_TEMPLATES } from '~/utils/system-templates'
 
 definePageMeta({
   layout: 'dashboard',
@@ -243,13 +244,14 @@ watch(currentIndex, () => {
 const currentSummary = computed(() => filteredApplications.value[currentIndex.value] ?? null)
 
 // Detail tab for center panel
-type DetailTab = 'overview' | 'interviews' | 'documents' | 'responses' | 'ai-analysis' | 'timeline'
+type DetailTab = 'overview' | 'interviews' | 'documents' | 'address' | 'responses' | 'ai-analysis' | 'timeline'
 const detailTab = ref<DetailTab>('overview')
 
 // Overview section visibility toggles
 const overviewSections = reactive({
   aiAnalysis: true,
   interviews: true,
+  address: true,
   documents: true,
   responses: true,
 })
@@ -275,6 +277,7 @@ const showSection = computed(() => ({
   profile: detailTab.value === 'overview',
   aiAnalysis: detailTab.value === 'overview' ? overviewSections.aiAnalysis : detailTab.value === 'ai-analysis',
   interviews: detailTab.value === 'overview' ? overviewSections.interviews : detailTab.value === 'interviews',
+  address: detailTab.value === 'overview' ? overviewSections.address : detailTab.value === 'address',
   documents: detailTab.value === 'overview' ? overviewSections.documents : detailTab.value === 'documents',
   responses: detailTab.value === 'overview' ? overviewSections.responses : detailTab.value === 'responses',
   timeline: detailTab.value === 'timeline',
@@ -1262,6 +1265,20 @@ function closeDocPreview() {
   docPreviewMimeType.value = ''
   docPreviewDocId.value = null
 }
+
+const showSendInvitation = ref(false)
+const selectedTemplateId = ref<string>('system-standard')
+const isSendingEmail = ref(false)
+const sendEmailError = ref('')
+const sendEmailSuccess = ref(false)
+const showEmailPreview = ref(false)
+
+const { templates: emailTemplates, sendInvitation } = useEmailTemplates()
+
+const allTemplates = computed(() => [
+  ...SYSTEM_TEMPLATES.map(t => ({ ...t, isSystem: true as const })),
+  ...(emailTemplates.value ?? []).map(t => ({ ...t, isSystem: false as const, description: '' })),
+])
 </script>
 
 <template>
@@ -1748,7 +1765,7 @@ function closeDocPreview() {
                       </a>
                       <span v-if="resolvedCurrentApplication?.candidate.phone" class="inline-flex items-center gap-1.5">
                         <Phone class="size-3.5" />
-                        {{ resolvedCurrentApplication.candidate.phone }}
+                        <a :href="`tel:${resolvedCurrentApplication.candidate.phone}`">{{ resolvedCurrentApplication.candidate.phone }}</a>
                       </span>
                     </div>
                     <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -1865,6 +1882,10 @@ function closeDocPreview() {
                         Interviews
                       </label>
                       <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
+                        <input v-model="overviewSections.address" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
+                        Address
+                      </label>
+                      <label class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800/80 cursor-pointer select-none transition-colors">
                         <input v-model="overviewSections.documents" type="checkbox" class="size-3.5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 dark:border-surface-600 dark:bg-surface-800" />
                         Documents
                       </label>
@@ -1897,6 +1918,21 @@ function closeDocPreview() {
                     class="ml-1 text-xs text-surface-400"
                   >
                     ({{ currentApplicationInterviews.length }})
+                  </span>
+                </button>
+                <button
+                    class="cursor-pointer px-3.5 py-2.5 text-sm font-medium transition-all duration-150 border-b-2 -mb-px"
+                    :class="detailTab === 'address'
+                    ? 'border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-300'
+                    : 'border-transparent text-surface-500 hover:text-surface-700 hover:border-surface-300 dark:text-surface-400 dark:hover:text-surface-300 dark:hover:border-surface-600'"
+                    @click="detailTab = 'address'"
+                >
+                  Address
+                  <span
+                      v-if="resolvedCurrentApplication?.candidate.address?.length"
+                      class="ml-1 text-xs text-surface-400"
+                  >
+                    ({{ resolvedCurrentApplication.candidate.address.length }})
                   </span>
                 </button>
                 <button
@@ -2345,6 +2381,185 @@ function closeDocPreview() {
                     Schedule Interview
                   </button>
                 </div>
+              </div>
+
+              <!-- ADDRESS SECTION -->
+              <div v-if="showSection.address" ref="documentsRef" class="space-y-3 max-w-4xl mx-auto" :class="detailTab === 'overview' ? 'mt-10' : ''">
+                <h2 class="text-sm font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-2 mb-3">
+                  <Map class="size-4 text-surface-400 dark:text-surface-500" />
+                  Address
+                </h2>
+                <div v-if="resolvedCurrentApplication?.candidate.address?.length" class="space-y-3">
+                  <div
+                      v-for="address in resolvedCurrentApplication.candidate.address"
+                      :key="address.id"
+                      class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-200/80 bg-white px-5 py-4 shadow-sm shadow-surface-900/[0.03] dark:border-surface-800/60 dark:bg-surface-900 dark:shadow-none transition-colors hover:border-surface-300 dark:hover:border-surface-700"
+                  >
+                    <div class="flex items-center gap-3.5 min-w-0">
+                      <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-100 dark:bg-surface-800/60">
+                        <FileText class="size-4.5 text-surface-500 dark:text-surface-400" />
+                      </div>
+                      <div class="min-w-0">
+
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="rounded-xl border border-surface-200/80 bg-white p-10 text-center shadow-sm shadow-surface-900/[0.03] dark:border-surface-800/60 dark:bg-surface-900 dark:shadow-none">
+                  <div class="flex size-14 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800/60 mx-auto mb-3">
+                    <Map class="size-6 text-surface-400 dark:text-surface-500" />
+                  </div>
+                  <p class="text-sm font-medium text-surface-600 dark:text-surface-300">No address filled</p>
+                  <p class="mt-1 text-xs text-surface-400 dark:text-surface-500">Address will appear here once filled.</p>
+                  <button
+                      class="mt-5 inline-flex cursor-pointer items-center rounded-full border border-success-200 dark:border-success-800 bg-success-50 dark:bg-success-950/30 px-3.5 py-1.5 text-sm font-medium text-success-700 dark:text-success-300 hover:bg-success-100 dark:hover:bg-success-950/50 transition-all duration-150"
+                      @click="showSendInvitation = !showSendInvitation"
+                  >
+                    <Mail class="mr-1.5 size-3.5" />
+                    Request Address
+                    <ChevronDown class="ml-1 size-3 transition-transform" :class="showSendInvitation ? 'rotate-180' : ''" />
+                  </button>
+                </div>
+
+                <!-- Send Invitation inline panel -->
+                <Transition
+                    enter-active-class="transition duration-200 ease-out"
+                    enter-from-class="opacity-0 -translate-y-2"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 -translate-y-2"
+                >
+                  <div v-if="showSendInvitation" class="mb-6 rounded-xl border border-brand-200 dark:border-brand-800/60 bg-white dark:bg-surface-900 overflow-hidden shadow-sm">
+                    <!-- Success state -->
+                    <div v-if="sendEmailSuccess" class="flex flex-col items-center justify-center py-10 px-6">
+                      <div class="flex size-12 items-center justify-center rounded-full bg-success-100 dark:bg-success-950/40 mb-3">
+                        <Check class="size-6 text-success-600 dark:text-success-400" />
+                      </div>
+                      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100 mb-1">Invitation Sent!</h3>
+                      <p class="text-sm text-surface-500 dark:text-surface-400">Email sent to qweqwe@qweqwe.com</p>
+                    </div>
+
+                    <template v-else>
+                      <div class="border-b border-brand-100 dark:border-brand-900/40 bg-brand-50/50 dark:bg-brand-950/20 px-5 py-3.5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2.5">
+                            <div class="flex size-8 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/40">
+                              <Mail class="size-4 text-brand-600 dark:text-brand-400" />
+                            </div>
+                            <div>
+                              <h3 class="text-sm font-semibold text-surface-800 dark:text-surface-200">Send Interview Invitation</h3>
+                              <p class="text-xs text-surface-500 dark:text-surface-400">to qweqwe@wqeqwe.com</p>
+                            </div>
+                          </div>
+                          <button
+                              class="cursor-pointer rounded-lg p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 dark:hover:text-surface-300 dark:hover:bg-surface-800 transition-all"
+                              @click="showSendInvitation = false"
+                          >
+                            <X class="size-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Error -->
+                      <div v-if="sendEmailError" class="mx-5 mt-4 flex items-start gap-2.5 rounded-xl border border-danger-200/80 bg-danger-50 p-3.5 text-sm text-danger-700 dark:border-danger-800/60 dark:bg-danger-950/40 dark:text-danger-300">
+                        <AlertCircle class="size-4 shrink-0 mt-0.5" />
+                        {{ sendEmailError }}
+                      </div>
+
+                      <!-- Template selection -->
+                      <div class="p-5">
+                        <div class="flex items-center justify-between mb-3">
+                          <p class="text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">Choose a Template</p>
+                          <NuxtLink
+                              :to="localePath('/dashboard/interviews/templates')"
+                              class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors no-underline"
+                          >
+                            Manage Templates
+                            <ExternalLink class="size-3" />
+                          </NuxtLink>
+                        </div>
+
+                        <div class="grid gap-2 sm:grid-cols-2">
+                          <button
+                              v-for="t in allTemplates"
+                              :key="t.id"
+                              type="button"
+                              class="w-full text-left rounded-xl border-2 p-3.5 transition-all duration-150 cursor-pointer"
+                              :class="selectedTemplateId === t.id
+                    ? 'border-brand-500 bg-brand-50/50 dark:border-brand-400 dark:bg-brand-950/20 shadow-sm'
+                    : 'border-surface-200 dark:border-surface-700/80 hover:border-surface-300 dark:hover:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-800/40'"
+                              @click="selectedTemplateId = t.id"
+                          >
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="text-sm font-semibold text-surface-800 dark:text-surface-200">{{ t.name }}</span>
+                              <span v-if="t.isSystem" class="text-[10px] uppercase tracking-wider font-semibold text-surface-400 bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded">
+                      Built-in
+                    </span>
+                            </div>
+                            <p class="text-xs text-surface-500 dark:text-surface-400 truncate">{{ t.subject }}</p>
+                          </button>
+                        </div>
+
+                        <!-- Preview toggle -->
+                        <div v-if="selectedTemplate" class="mt-4">
+                          <button
+                              type="button"
+                              class="flex items-center gap-1.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors cursor-pointer"
+                              @click="showEmailPreview = !showEmailPreview"
+                          >
+                            <component :is="showEmailPreview ? X : Mail" class="size-3.5" />
+                            {{ showEmailPreview ? 'Hide Preview' : 'Preview Email' }}
+                          </button>
+                          <Transition
+                              enter-active-class="transition duration-200 ease-out"
+                              enter-from-class="opacity-0 -translate-y-1"
+                              enter-to-class="opacity-100 translate-y-0"
+                              leave-active-class="transition duration-100 ease-in"
+                              leave-from-class="opacity-100"
+                              leave-to-class="opacity-0"
+                          >
+                            <div v-if="showEmailPreview" class="mt-3 rounded-xl border border-surface-200 dark:border-surface-700/80 bg-surface-50 dark:bg-surface-800/40 p-4">
+                              <div class="mb-3">
+                                <span class="text-[10px] uppercase tracking-wider font-semibold text-surface-400">Subject</span>
+                                <p class="text-sm font-semibold text-surface-800 dark:text-surface-200">{{ emailPreviewSubject }}</p>
+                              </div>
+                              <div class="border-t border-surface-200 dark:border-surface-700 pt-3">
+                                <span class="text-[10px] uppercase tracking-wider font-semibold text-surface-400">Body</span>
+                                <p class="text-sm text-surface-700 dark:text-surface-300 whitespace-pre-wrap mt-1 leading-relaxed">{{ emailPreviewBody }}</p>
+                              </div>
+                            </div>
+                          </Transition>
+                        </div>
+                      </div>
+
+                      <!-- Send button -->
+                      <div class="border-t border-surface-100 dark:border-surface-800 bg-surface-50/80 dark:bg-surface-950/40 px-5 py-4">
+                        <div class="flex items-center gap-3">
+                          <button
+                              type="button"
+                              class="flex-1 rounded-xl border border-surface-200 dark:border-surface-700 px-4 py-2.5 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all cursor-pointer"
+                              @click="showSendInvitation = false"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                              type="button"
+                              :disabled="!selectedTemplateId || isSendingEmail"
+                              class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm shadow-brand-500/20"
+                              @click="handleSendInvitation"
+                          >
+                            <Send class="size-4" />
+                            {{ isSendingEmail ? 'Sending…' : 'Send Invitation' }}
+                          </button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </Transition>
               </div>
 
               <!-- DOCUMENTS SECTION -->

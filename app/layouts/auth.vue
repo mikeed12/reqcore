@@ -8,8 +8,6 @@
         <div class="flex justify-center mb-3">
           <img src="/eagle-mascot-logo.png" alt="Reqcore mascot" class="size-16 object-contain" />
         </div>
-        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Reqcore</h1>
-        <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">Open-source ATS for developer teams</p>
       </div>
       <slot />
     </div>

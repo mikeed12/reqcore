@@ -102,6 +102,25 @@ export const application = pgTable('application', {
 ]))
 
 /**
+ * Address stored in MinIO (resumes, cover letters, etc.).
+ * `storageKey` is the S3 object key in the bucket.
+ * `parsedContent` holds the structured JSON output from PDF parsing.
+ */
+export const address = pgTable('address', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  candidateId: text('candidate_id').notNull().references(() => candidate.id, { onDelete: 'cascade' }),
+  address1: text('street').notNull(),
+  city: text('city').notNull(),
+  state: text('state').notNull(),
+  zip: text('zip').notNull(),
+  country: text('country').notNull(),
+}, (t) => ([
+  index('address_application_organization_id_idx').on(t.organizationId),
+  index('address_application_candidate_id_idx').on(t.candidateId),
+]))
+
+/**
  * Documents stored in MinIO (resumes, cover letters, etc.).
  * `storageKey` is the S3 object key in the bucket.
  * `parsedContent` holds the structured JSON output from PDF parsing.
@@ -598,9 +617,15 @@ export const jobRelations = relations(job, ({ one, many }) => ({
   trackingLinks: many(trackingLink),
 }))
 
+export const addressRelations = relations(address, ({ one }) => ({
+  candidate: one(candidate, { fields: [address.candidateId], references: [candidate.id] }),
+  organization: one(organization, { fields: [address.organizationId], references: [organization.id] }),
+}))
+
 export const candidateRelations = relations(candidate, ({ one, many }) => ({
   organization: one(organization, { fields: [candidate.organizationId], references: [organization.id] }),
   applications: many(application),
+  addresses: many(address),
   documents: many(document),
 }))
 

@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
 
   const { id } = await getValidatedRouterParams(event, candidateIdParamSchema.parse)
 
+  // @ts-ignore
   const result = await db.query.candidate.findFirst({
     where: and(eq(candidate.id, id), eq(candidate.organizationId, orgId)),
     with: {
@@ -24,6 +25,10 @@ export default defineEventHandler(async (event) => {
         columns: { id: true, type: true, originalFilename: true, mimeType: true, parsedContent: true, createdAt: true },
         orderBy: (document, { desc }) => [desc(document.createdAt)],
       },
+      addresses: {
+        columns: { id: true, address1: true, city: true, state: true, zip: true, country: true },
+        limit: 1,
+      }
     },
   })
 

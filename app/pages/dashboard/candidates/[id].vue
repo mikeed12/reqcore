@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Clock, Briefcase, FileText, Plus, Upload, Download, Eye, X, AlertTriangle } from 'lucide-vue-next'
+import { MapPin, Map, ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Clock, Briefcase, FileText, Plus, Upload, Download, Eye, X, AlertTriangle } from 'lucide-vue-next'
 import { z } from 'zod'
 import { usePreviewReadOnly } from '~/composables/usePreviewReadOnly'
 
@@ -27,7 +27,7 @@ useSeoMeta({
 // Tabs
 // ─────────────────────────────────────────────
 
-const activeTab = ref<'applications' | 'documents'>('applications')
+const activeTab = ref<'applications' | 'documents' | 'addresses'>('applications')
 
 // ─────────────────────────────────────────────
 // Edit mode
@@ -160,6 +160,27 @@ const interviewTargetApp = ref<{ id: string; jobTitle: string } | null>(null)
 function openScheduleInterview(app: { id: string; job: { title: string } }) {
   interviewTargetApp.value = { id: app.id, jobTitle: app.job.title }
   showInterviewSidebar.value = true
+}
+
+// ─────────────────────────────────────────────
+// Addresses — delete
+// ─────────────────────────────────────────────
+
+const showAddressDeleteConfirm = ref<string | null>(null)
+const isDeletingAddress = ref(false)
+
+async function handleDeleteAddress(addressId: string) {
+  isDeletingAddress.value = true
+  try {
+    await $fetch(`/api/candidates/${candidateId}/address/${addressId}`, { method: 'DELETE' })
+    showAddressDeleteConfirm.value = null
+    await refresh()
+  } catch (err: any) {
+    if (handlePreviewReadOnlyError(err)) return
+    toast.error('Failed to delete address', { message: err.data?.statusMessage, statusCode: err.data?.statusCode })
+  } finally {
+    isDeletingAddress.value = false
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -400,6 +421,15 @@ function formatFileSize(bytes: number | null | undefined): string {
               @click="activeTab = 'documents'"
             >
               Documents ({{ candidate.documents?.length ?? 0 }})
+            </button>
+            <button
+                class="cursor-pointer px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px"
+                :class="activeTab === 'addresses'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-surface-500 hover:text-surface-700 hover:border-surface-300 dark:hover:text-surface-300'"
+                @click="activeTab = 'addresses'"
+            >
+              Addresses ({{ candidate.addresses?.length ?? 0 }})
             </button>
           </div>
         </div>
@@ -665,6 +695,89 @@ function formatFileSize(bytes: number | null | undefined): string {
                     @click="handleDeleteDoc(showDocDeleteConfirm!)"
                   >
                     {{ isDeletingDoc ? 'Deleting…' : 'Delete' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Teleport>
+        </div>
+
+        <div v-if="activeTab === 'addresses'">
+          <!-- Empty state -->
+          <div
+            v-if="!candidate.addresses?.length"
+            class="rounded-lg border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 p-8 text-center"
+          >
+            <Map class="size-8 text-surface-300 dark:text-surface-600 mx-auto mb-2" />
+            <p class="text-sm text-surface-500 dark:text-surface-400">No addresses yet.</p>
+          </div>
+
+          <!-- Address cards -->
+          <div v-else class="space-y-3">
+            <div
+              v-for="(addr, index) in candidate.addresses"
+              :key="addr.id"
+              class="rounded-lg border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 px-5 py-4"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3 min-w-0">
+                  <div class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400">
+                    <MapPin class="size-4" />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-surface-900 dark:text-surface-100">
+                      {{ addr.address1 }}
+                    </p>
+                    <p class="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
+                      {{ addr.city }}, {{ addr.state }} {{ addr.zip }}
+                    </p>
+                    <p class="text-xs text-surface-400 dark:text-surface-500 mt-0.5">
+                      {{ addr.country }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span
+                    v-if="index === 0"
+                    class="inline-flex items-center rounded-full bg-brand-50 dark:bg-brand-950 px-2 py-0.5 text-xs font-medium text-brand-700 dark:text-brand-300"
+                  >
+                    Primary
+                  </span>
+                  <button
+                    class="rounded-lg p-1.5 text-surface-400 hover:text-danger-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                    title="Delete address"
+                    @click="showAddressDeleteConfirm = addr.id"
+                  >
+                    <Trash2 class="size-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address delete confirmation dialog -->
+          <Teleport to="body">
+            <div v-if="showAddressDeleteConfirm" class="fixed inset-0 z-50 flex items-center justify-center">
+              <div class="absolute inset-0 bg-black/50" @click="showAddressDeleteConfirm = null" />
+              <div class="relative bg-white dark:bg-surface-900 rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+                <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-2">Delete Address</h3>
+                <p class="text-sm text-surface-600 dark:text-surface-400 mb-4">
+                  Are you sure you want to delete this address? This action cannot be undone.
+                </p>
+                <div class="flex justify-end gap-2">
+                  <button
+                    :disabled="isDeletingAddress"
+                    class="rounded-lg border border-surface-300 dark:border-surface-600 px-3 py-1.5 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+                    @click="showAddressDeleteConfirm = null"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    :disabled="isDeletingAddress"
+                    class="rounded-lg bg-danger-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-danger-700 disabled:opacity-50 transition-colors"
+                    @click="handleDeleteAddress(showAddressDeleteConfirm!)"
+                  >
+                    {{ isDeletingAddress ? 'Deleting…' : 'Delete' }}
                   </button>
                 </div>
               </div>
