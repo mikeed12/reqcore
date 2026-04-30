@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Building2, Users, UserCircle, ChevronLeft, Settings, Plug, Brain, ShieldCheck, Mail,
+  Building2, Users, UserCircle, ChevronLeft, Settings, Plug, Brain, ShieldCheck, Mail, Phone,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -26,6 +26,13 @@ const settingsNav = [
     description: 'Email accounts & members',
     to: '/dashboard/settings/mailboxes',
     icon: Mail,
+    exact: true,
+  },
+  {
+    label: 'SIP Extensions',
+    description: 'Softphone extensions & members',
+    to: '/dashboard/settings/sip-extensions',
+    icon: Phone,
     exact: true,
   },
   {

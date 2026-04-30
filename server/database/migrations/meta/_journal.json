@@ -157,6 +157,13 @@
       "breakpoints": true
     },
     {
+      "idx": 22,
+      "version": "7",
+      "when": 1777605126686,
+      "tag": "0022_messenger",
+      "breakpoints": true
+    },
+    {
       "idx": 23,
       "version": "7",
       "when": 1746057600000,
@@ -175,6 +182,13 @@
       "version": "7",
       "when": 1746230400000,
       "tag": "0025_mail_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1746316800000,
+      "tag": "0026_sip_extensions",
       "breakpoints": true
     }
   ]

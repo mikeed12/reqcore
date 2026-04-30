@@ -944,3 +944,72 @@ export const mailMessageRelations = relations(mailMessage, ({ one }) => ({
   mailbox:      one(organizationMailbox, { fields: [mailMessage.organizationMailboxId], references: [organizationMailbox.id] }),
   organization: one(organization,        { fields: [mailMessage.organizationId],        references: [organization.id] }),
 }))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIP Extensions
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Org-level SIP extension credentials.
+ * Admins create extensions once; members are assigned via the junction table.
+ * Credentials (username/password) are AES-256-GCM encrypted at rest.
+ */
+export const organizationSipExtension = pgTable('organization_sip_extension', {
+  id:             text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+
+  /** Human-readable name, e.g. "Reception Desk" */
+  label:       text('label').notNull(),
+  /** SIP extension number, e.g. "101" */
+  extension:   text('extension').notNull(),
+  /** SIP display name / caller-ID name */
+  displayName: text('display_name'),
+
+  /** Encrypted SIP username (often same as extension) */
+  usernameEncrypted: text('username_encrypted'),
+  /** Encrypted SIP password */
+  passwordEncrypted: text('password_encrypted'),
+
+  /** SIP registrar / PBX host, e.g. "pbx.example.com" */
+  domain:    text('domain'),
+  /** WebSocket proxy port, e.g. "8089" */
+  wsPort:    text('ws_port').default('8089'),
+  /** WebSocket path, e.g. "/ws" */
+  wsPath:    text('ws_path').default('/ws'),
+
+  isActive:  boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => [
+  index('org_sip_ext_org_idx').on(t.organizationId),
+  uniqueIndex('org_sip_ext_org_ext_idx').on(t.organizationId, t.extension),
+])
+
+/**
+ * Junction — which members are assigned to which SIP extension.
+ * One member can have multiple extensions; one extension can be shared.
+ */
+export const memberSipExtensionAssignment = pgTable('member_sip_extension_assignment', {
+  id:                       text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationSipExtensionId: text('organization_sip_extension_id').notNull()
+                                .references(() => organizationSipExtension.id, { onDelete: 'cascade' }),
+  userId:         text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  isPrimary:      boolean('is_primary').default(false).notNull(),
+  assignedAt:     timestamp('assigned_at').notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('member_sip_ext_assignment_unique_idx').on(t.userId, t.organizationSipExtensionId),
+  index('member_sip_ext_assignment_user_org_idx').on(t.userId, t.organizationId),
+  index('member_sip_ext_assignment_ext_idx').on(t.organizationSipExtensionId),
+])
+
+export const organizationSipExtensionRelations = relations(organizationSipExtension, ({ one, many }) => ({
+  organization: one(organization, { fields: [organizationSipExtension.organizationId], references: [organization.id] }),
+  assignments:  many(memberSipExtensionAssignment),
+}))
+
+export const memberSipExtensionAssignmentRelations = relations(memberSipExtensionAssignment, ({ one }) => ({
+  sipExtension:  one(organizationSipExtension, { fields: [memberSipExtensionAssignment.organizationSipExtensionId], references: [organizationSipExtension.id] }),
+  user:          one(user,                     { fields: [memberSipExtensionAssignment.userId],                      references: [user.id] }),
+  organization:  one(organization,             { fields: [memberSipExtensionAssignment.organizationId],              references: [organization.id] }),
+}))

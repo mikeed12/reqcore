@@ -1,13 +1,48 @@
-import { eq, and, or, ilike, desc, sql } from 'drizzle-orm'
-import { candidate, application } from '../../database/schema'
-import { candidateQuerySchema } from '../../utils/schemas/candidate'
+/**
+ * GET /api/softphone/extensions
+ * Returns SIP extensions assigned to the current user, with decrypted credentials
+ * in a JsSIP-compatible shape.
+ */
+import { decrypt } from '../../utils/encryption'
 
 export default defineEventHandler(async (event) => {
-    const session = await requirePermission(event, { candidate: ['read'] })
+  const session = await requireAuth(event)
+  const orgId  = session.session.activeOrganizationId
+  const userId = session.user.id
+  const secret = env.BETTER_AUTH_SECRET
 
-    const data= [
-        { id: '100', name: 'Example', number: '(111) 1111111' },
-    ];
+  const assignments = await db.query.memberSipExtensionAssignment.findMany({
+    where: (t, { and, eq }) => and(eq(t.userId, userId), eq(t.organizationId, orgId)),
+    with: {
+      sipExtension: true,
+    },
+    orderBy: (t, { desc, asc }) => [desc(t.isPrimary), asc(t.assignedAt)],
+  })
 
-    return { data }
+  const data = assignments
+    .map(a => a.sipExtension)
+    .filter(ext => ext.isActive)
+    .map(ext => {
+      const sipUser = ext.usernameEncrypted
+        ? decrypt(ext.usernameEncrypted, secret)
+        : ext.extension
+      const sipPassword = ext.passwordEncrypted
+        ? decrypt(ext.passwordEncrypted, secret)
+        : null
+
+      return {
+        id:          ext.id,
+        name:        ext.label,
+        number:      ext.extension,
+        displayName: ext.displayName || ext.label,
+        // JsSIP config fields
+        sipUser,
+        sipPassword,
+        sipHost:     ext.domain || null,
+        sipPort:     ext.wsPort || '8089',
+        sipPathname: ext.wsPath || '/ws',
+      }
+    })
+
+  return { data }
 })

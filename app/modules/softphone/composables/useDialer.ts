@@ -190,18 +190,18 @@ export function useDialer() {
         setState(CALL_STATES.ERROR)
     }
 
-    function getSipConfigForExtension(extension: null) {
+    function getSipConfigForExtension(extension: any) {
         const activeOrgState = authClient.useActiveOrganization()
         // @ts-ignore
-        const metadata = JSON.parse(activeOrgState.value.data.metadata)  || {}
+        const metadata = JSON.parse(activeOrgState.value?.data?.metadata || '{}') || {}
 
         return {
-            user: '101',
-            password: 'bBnsx6PHPQh3DeWsT2qJt77Je',
-            host: metadata.webrtcUrl,
-            port: '8089',
-            pathname: metadata.pathname || '/ws',
-            displayName: extension,
+            user:        extension?.sipUser     || extension?.number || '',
+            password:    extension?.sipPassword || '',
+            host:        extension?.sipHost     || metadata.webrtcUrl || '',
+            port:        extension?.sipPort     || '8089',
+            pathname:    extension?.sipPathname || metadata.pathname || '/ws',
+            displayName: extension?.displayName || extension?.name || '',
         }
     }
 
