@@ -638,3 +638,83 @@ function buildInterviewInvitationText(
     '─────────────────────────────',
   ].join('\n')
 }
+
+/**
+ * Send an address verification request email to a candidate.
+ * Falls back to console.info when RESEND_API_KEY is not set.
+ */
+export async function sendAddressRequestEmail(data: {
+  candidateName: string
+  candidateEmail: string
+  organizationName: string
+  senderName: string
+  verificationUrl: string
+}): Promise<void> {
+  const resend = getResendClient()
+
+  if (!resend) {
+    console.info(
+      `[Reqcore] Address request email → ${data.candidateEmail} | URL: ${data.verificationUrl}`,
+    )
+    return
+  }
+
+  const fromEmail = env.RESEND_FROM_EMAIL
+  const subject = `Next Step in Your Application – Address Submission Required`
+
+  const bodyText = [
+    `Dear ${data.candidateName},`,
+    '',
+    `Thank you for your application to ${data.organizationName}.`,
+    '',
+    `We are ready to proceed with the next step of your application. As part of a required background verification process, we need you to provide your full residential address.`,
+    '',
+    `For your security and privacy, please submit this information only through the secure link below:`,
+    data.verificationUrl,
+    '',
+    `Please do not share your address details directly with any employee or via email.`,
+    '',
+    `Kindly complete this step at your earliest convenience so we can continue with your application.`,
+    '',
+    `If you have any questions, feel free to reach out.`,
+    '',
+    `Best regards,`,
+    `${data.senderName},`,
+    data.organizationName,
+  ].join('\n')
+
+  const bodyHtml = `
+    <p>Dear ${escapeHtml(data.candidateName)},</p>
+    <p>Thank you for your application to <strong>${escapeHtml(data.organizationName)}</strong>.</p>
+    <p>We are ready to proceed with the next step of your application. As part of a required background verification process, we need you to provide your full residential address.</p>
+    <p>For your security and privacy, please submit this information only through the secure link below:</p>
+    <p style="margin:24px 0;">
+      <a href="${escapeHtml(data.verificationUrl)}"
+         style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;border-radius:8px;">
+        Submit Address
+      </a>
+    </p>
+    <p style="color:#71717a;font-size:13px;">Or copy and paste this link: ${escapeHtml(data.verificationUrl)}</p>
+    <p><strong>Please do not share your address details directly with any employee or via email.</strong></p>
+    <p>Kindly complete this step at your earliest convenience so we can continue with your application.</p>
+    <p>If you have any questions, feel free to reach out.</p>
+    <p>Best regards,<br/>${escapeHtml(data.senderName)},<br/>${escapeHtml(data.organizationName)}</p>
+  `
+
+  const { error } = await resend.emails.send({
+    from: fromEmail,
+    to: [data.candidateEmail],
+    subject,
+    text: bodyText,
+    html: bodyHtml,
+    tags: [{ name: 'category', value: 'address-request' }],
+  })
+
+  if (error) {
+    logError('email.address_request_send_failed', {
+      provider: 'resend',
+      error_message: error.message,
+    })
+    throw new Error(error.message)
+  }
+}
