@@ -260,7 +260,7 @@ export default defineNuxtConfig({
           "Strict-Transport-Security":
             "max-age=63072000; includeSubDomains; preload",
           "Content-Security-Policy":
-            "default-src 'self'; media-src 'self' data:; frame-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://eu.i.posthog.com https://eu.posthog.com; https: ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            "default-src 'self'; media-src 'self' data:; frame-src 'self' data:; script-src 'self' 'unsafe-inline'; sandbox allow-scripts; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://eu.i.posthog.com https://eu.posthog.com; https: ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
           // Block indexing for all non-public routes by default;
           // overridden below for /jobs/** which should be indexable.
           "X-Robots-Tag": "noindex, nofollow",
