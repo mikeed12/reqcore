@@ -835,3 +835,112 @@ export const conversationRelations = relations(conversation, ({ one, many }) => 
 export const messageRelations = relations(message, ({ one }) => ({
   conversation: one(conversation, { fields: [message.conversationId], references: [conversation.id] }),
 }))
+
+// ─── Mailboxes ─────────────────────────────────────────────────────
+
+export const mailboxProviderEnum = pgEnum('mailbox_provider', ['imap', 'gmail', 'microsoft'])
+
+/**
+ * Org-level mailbox definitions. Credentials encrypted at rest with AES-256-GCM.
+ * Members are assigned via memberMailboxAssignment.
+ */
+export const organizationMailbox = pgTable('organization_mailbox', {
+  id:             text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+
+  label:    text('label').notNull(),
+  email:    text('email').notNull(),
+  provider: mailboxProviderEnum('provider').notNull().default('imap'),
+
+  imapHost: text('imap_host'),
+  imapPort: integer('imap_port'),
+  imapTls:  boolean('imap_tls').default(true),
+  smtpHost: text('smtp_host'),
+  smtpPort: integer('smtp_port'),
+  smtpTls:  boolean('smtp_tls').default(true),
+
+  usernameEncrypted:     text('username_encrypted'),
+  passwordEncrypted:     text('password_encrypted'),
+  accessTokenEncrypted:  text('access_token_encrypted'),
+  refreshTokenEncrypted: text('refresh_token_encrypted'),
+  tokenExpiresAt:        timestamp('token_expires_at', { withTimezone: true }),
+
+  isActive:   boolean('is_active').default(true).notNull(),
+  lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+  syncError:  text('sync_error'),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => [
+  index('org_mailbox_org_idx').on(t.organizationId),
+  uniqueIndex('org_mailbox_org_email_idx').on(t.organizationId, t.email),
+])
+
+/**
+ * Junction — which members are assigned to which mailbox.
+ * A member can have multiple mailboxes; a mailbox can be shared.
+ */
+export const memberMailboxAssignment = pgTable('member_mailbox_assignment', {
+  id:                    text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationMailboxId: text('organization_mailbox_id').notNull()
+                           .references(() => organizationMailbox.id, { onDelete: 'cascade' }),
+  userId:                text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  organizationId:        text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  isPrimary:             boolean('is_primary').default(false).notNull(),
+  assignedAt:            timestamp('assigned_at').notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('member_mailbox_assignment_unique_idx').on(t.userId, t.organizationMailboxId),
+  index('member_mailbox_assignment_user_org_idx').on(t.userId, t.organizationId),
+  index('member_mailbox_assignment_mailbox_idx').on(t.organizationMailboxId),
+])
+
+export const organizationMailboxRelations = relations(organizationMailbox, ({ one, many }) => ({
+  organization: one(organization, { fields: [organizationMailbox.organizationId], references: [organization.id] }),
+  assignments:  many(memberMailboxAssignment),
+}))
+
+export const memberMailboxAssignmentRelations = relations(memberMailboxAssignment, ({ one }) => ({
+  mailbox:      one(organizationMailbox, { fields: [memberMailboxAssignment.organizationMailboxId], references: [organizationMailbox.id] }),
+  user:         one(user,               { fields: [memberMailboxAssignment.userId],                references: [user.id] }),
+  organization: one(organization,       { fields: [memberMailboxAssignment.organizationId],        references: [organization.id] }),
+}))
+
+/**
+ * Synced email messages from IMAP mailboxes.
+ * bodyHtml / bodyText stored as-is from the server.
+ */
+export const mailMessage = pgTable('mail_message', {
+  id:                    text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationMailboxId: text('organization_mailbox_id').notNull()
+                           .references(() => organizationMailbox.id, { onDelete: 'cascade' }),
+  organizationId:        text('organization_id').notNull()
+                           .references(() => organization.id, { onDelete: 'cascade' }),
+
+  /** IMAP UID within the folder */
+  uid:        integer('uid').notNull(),
+  folder:     text('folder').notNull().default('INBOX'),
+  messageId:  text('message_id'),   // Message-ID header, for deduplication
+
+  fromName:   text('from_name'),
+  fromEmail:  text('from_email'),
+  toJson:     text('to_json'),      // JSON array of {name, email}
+  ccJson:     text('cc_json'),
+  subject:    text('subject'),
+  bodyText:   text('body_text'),
+  bodyHtml:   text('body_html'),
+  sentAt:     timestamp('sent_at', { withTimezone: true }),
+
+  isRead:     boolean('is_read').default(false).notNull(),
+  isFlagged:  boolean('is_flagged').default(false).notNull(),
+
+  syncedAt:   timestamp('synced_at').notNull().defaultNow(),
+}, (t) => [
+  index('mail_message_mailbox_idx').on(t.organizationMailboxId),
+  index('mail_message_org_idx').on(t.organizationId),
+  uniqueIndex('mail_message_uid_folder_idx').on(t.organizationMailboxId, t.folder, t.uid),
+])
+
+export const mailMessageRelations = relations(mailMessage, ({ one }) => ({
+  mailbox:      one(organizationMailbox, { fields: [mailMessage.organizationMailboxId], references: [organizationMailbox.id] }),
+  organization: one(organization,        { fields: [mailMessage.organizationId],        references: [organization.id] }),
+}))

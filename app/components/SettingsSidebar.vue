@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Building2, Users, UserCircle, ChevronLeft, Settings, Plug, Brain, ShieldCheck,
+  Building2, Users, UserCircle, ChevronLeft, Settings, Plug, Brain, ShieldCheck, Mail,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -19,6 +19,13 @@ const settingsNav = [
     description: 'Team & invitations',
     to: '/dashboard/settings/members',
     icon: Users,
+    exact: true,
+  },
+  {
+    label: 'Mailboxes',
+    description: 'Email accounts & members',
+    to: '/dashboard/settings/mailboxes',
+    icon: Mail,
     exact: true,
   },
   {

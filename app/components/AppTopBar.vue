@@ -6,10 +6,11 @@ import {
   ChevronDown, Menu, X, Users, ChevronLeft,
   LayoutDashboard, Calendar, ArrowUpCircle,
   Cloud, Server, Sparkles, Radio, History,
-  MessageSquare, LifeBuoy,
+  MessageSquare, LifeBuoy, Mail, SquarePen,
 } from 'lucide-vue-next'
 
 const { isOpen: convPanelOpen, totalUnread: convTotalUnread, toggle: toggleConvPanel } = useConversationsPanel()
+const { open: openCompose } = useMailCompose()
 
 import Dialer from "~/modules/softphone/components/Dialer.vue";
 
@@ -132,6 +133,7 @@ const mainNav: Array<{ label: string; to: string; icon: typeof Briefcase; exact:
   { label: 'Interviews', to: '/dashboard/interviews', icon: Calendar, exact: false },
   { label: 'Timeline', to: '/dashboard/timeline', icon: History, exact: true },
   { label: 'Tickets', to: '/dashboard/tickets', icon: LifeBuoy, exact: false },
+  { label: 'Mailboxes', to: '/dashboard/mailboxes', icon: Mail, exact: true },
   // { label: 'Source Tracking', to: '/dashboard/source-tracking', icon: Radio, exact: true },
   // { label: 'AI Analysis', to: '/dashboard/ai-analysis', icon: Sparkles, exact: true },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings, exact: false },
@@ -273,6 +275,15 @@ onUnmounted(() => {
               </div>
             </Transition>
           </div>
+
+          <!-- Compose mail -->
+          <button
+            class="flex items-center justify-center size-8 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all duration-200 cursor-pointer border-0 bg-transparent"
+            title="Compose email"
+            @click="openCompose()"
+          >
+            <SquarePen class="size-4" />
+          </button>
 
           <!-- Conversations panel toggle -->
           <button

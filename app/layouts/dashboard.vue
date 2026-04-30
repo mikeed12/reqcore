@@ -7,6 +7,7 @@ const { data: session } = await authClient.useSession(useFetch)
 const config = useRuntimeConfig()
 const { activeOrg } = useCurrentOrg()
 const { isUpsellOpen, closeUpsell } = usePreviewReadOnly()
+const route = useRoute()
 
 const isDemo = computed(() => {
   const slug = config.public.demoOrgSlug
@@ -14,6 +15,9 @@ const isDemo = computed(() => {
 })
 
 const isDemoAccount = computed(() => session.value?.user?.email === 'demo@reqcore.com')
+
+// Pages can set `definePageMeta({ fullBleed: true })` to opt out of padding + scroll
+const isFullBleed = computed(() => !!route.meta.fullBleed)
 </script>
 
 <template>
@@ -25,10 +29,16 @@ const isDemoAccount = computed(() => session.value?.user?.email === 'demo@reqcor
       <DemoUpsellBanner v-if="isDemoAccount" />
     </ClientOnly>
     <ConversationsPanel />
-    <main class="relative flex-1 min-h-0 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <MailComposePanel />
+    <main
+      class="relative flex-1 min-h-0"
+      :class="isFullBleed
+        ? 'overflow-hidden flex flex-col'
+        : 'overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8'"
+    >
       <!-- Demo mode banner -->
       <div
-        v-if="isDemo"
+        v-if="isDemo && !isFullBleed"
         class="mx-auto mb-6 flex max-w-5xl items-center gap-3 rounded-lg border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-950/40 px-4 py-2.5 text-sm text-brand-700 dark:text-brand-300"
       >
         <Eye class="size-4 shrink-0" />

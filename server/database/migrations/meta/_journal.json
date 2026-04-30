@@ -162,6 +162,20 @@
       "when": 1746057600000,
       "tag": "0023_candidate_contracts",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1746144000000,
+      "tag": "0024_mailboxes",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1746230400000,
+      "tag": "0025_mail_messages",
+      "breakpoints": true
     }
   ]
 }
