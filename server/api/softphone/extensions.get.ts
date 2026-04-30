@@ -11,13 +11,17 @@ export default defineEventHandler(async (event) => {
   const userId = session.user.id
   const secret = env.BETTER_AUTH_SECRET
 
-  const assignments = await db.query.memberSipExtensionAssignment.findMany({
-    where: (t, { and, eq }) => and(eq(t.userId, userId), eq(t.organizationId, orgId)),
-    with: {
-      sipExtension: true,
-    },
-    orderBy: (t, { desc, asc }) => [desc(t.isPrimary), asc(t.assignedAt)],
-  })
+  let assignments: Awaited<ReturnType<typeof db.query.memberSipExtensionAssignment.findMany>>
+  try {
+    assignments = await db.query.memberSipExtensionAssignment.findMany({
+      where: (t, { and, eq }) => and(eq(t.userId, userId), eq(t.organizationId, orgId)),
+      with: { sipExtension: true },
+      orderBy: (t, { desc, asc }) => [desc(t.isPrimary), asc(t.assignedAt)],
+    })
+  } catch {
+    // Table doesn't exist yet (migration pending) — return empty list
+    return { data: [] }
+  }
 
   const data = assignments
     .map(a => a.sipExtension)
